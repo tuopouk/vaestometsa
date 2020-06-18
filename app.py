@@ -949,7 +949,7 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                 daq.LEDDisplay(
                 id='NMAE',
                 value = nmae,
-                size =150,
+                size =120,
                 color = nmae_color,
                 backgroundColor='black'
                     
@@ -961,7 +961,7 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                 daq.LEDDisplay(
                 id='NRMSE',
                 value = nrmse,
-                size =150,
+                size =120,
                 color = nrmse_color,
                 backgroundColor='black'
                     
@@ -974,7 +974,7 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                 daq.LEDDisplay(
                 id='R2',
                 value = r2,
-                size =150,
+                size =120,
                 color = r2_color,
                 backgroundColor='black'
                     
