@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import pandas as pd
 import numpy as np
 import requests
@@ -126,10 +129,11 @@ def serve_layout():
         
         
         return html.Div(children = [
-
+                    html.Br(),
+                    html.Br(),
                     html.H1('VäestöMetsä',style=dict(textAlign='center')),
                     html.Br(),
-                    html.P('Tällä sivulla testataan satunnaimetsän (RandomForest) kykyä ennustaa Suomen kaupunkien väestöä'),
+                    html.P('Tällä sivulla testataan satunnaimetsän (Random Forest) kykyä ennustaa Suomen kaupunkien väestöä perustuen Tilastokeskuksen jakamaan avoimeen väestödataan. Satunnaismetsä on ns. ensemble -koneoppimistekniikka, jolla pyritään saavuttamaan parempi ennusteen laatu yhdistämällä useita oppimismalleja. Tässä tapauksessa nimensä mukaisesti satunnaismetsä muodostuu päätöspuista, jotka kaikki yrittävät itsenäisesti päätellä ennustettavan arvon. Päätöspuut muodostetaan satunnaisesti ja ennusteen tulos on kaikkien päätöspuiden tulosten keskiarvo. Tärkeä kysymys satunnaismetsän käytössä on metsässä olevien puiden määrä, jonka saa tässä sovelluksessa itse valita. Muu ennustamiseen ja ennusteen laadun testaamiseen liittyvä parametrien valinta on myös mahdollistettu käyttäjän tehtäväksi. Käyttäjä voi valita ennustettavan kunnan sekä ennusteen pituuden. Tässä on hyvä huomioida, että ennusteen laatu olennaisesti heikkenee mitä pitemmälle ajalle ennuste tehdään. Käyttäjän on myös mahdollista testata ennusteen laatua, jättämällä haluttu osus datasta testidataksi. Tällöin ohjelma pyrkii ennustamaan valitun kunnan väestön viimeisimmiltä vuosilta. Opetusdatan määrän voi myös itse päättää. Tässä ajatuksena on, että liian kaukaa historiasta oleva data ei välttämättä ole edustavaa tulevaisuutta ennustettaessa tai tämän päivän väestöä selitettäessä. Malli on hyvin yksinkertainen ja perustuu siihen, että jokaisen vuoden tietyn ikäinen väestö selittyy edellisen vuoden vuotta nuorempien määrällä sekä iällä. Ikä sinänsä selittää kuolemanvaaraa (esim. 90 -vuotiailla on huomattavasti lyhyempi elinajanodote kuin 7 -vuotiailla) ja väesön muutosta (esim. opiskeluikäiset muuttavat toisiin kaupunkeihin opiskelumahdollisuuksien mukaan). Nollavuotiaat ennustetaan omalla satunnaismetsällään perustuen käyttäjän valitsemiin hedelmällisyysikiin. Näin voidaan määrittää minkä ikäisen väestön oletataan selittävän nollavuotiaiden määrää. Kun kaikki valinnat on tehty, käyttäjä voi ajaa testin ja luoda ennusteprojektion. Tässä tapauksessa ennusteen laatua mitataan kolmella indikaattorilla (absoluuttinen keskivirhe (MAE), keskimääräinen neliövirhe (RMSE) sekä selitysaste (R²). Se onko ennuste luotettava indikaattorien perusteella jää käyttäjän harkitsemaksi. Oleellisempaa tämän aplikaation käytössä on tutustuttaa käyttäjä koneoppimisen ihmeelliseen maailmaan. Toivotan siis iloisia hetkiä väestön ennustamisen ja ennakoivan analytiikan sekä tämän aplikaation käytön aikana. Lisätietoja käytetyistä tekniikoista ja testausmääreistä löydät tämän sivun alaosasta.'),
         html.Br(),
                     html.Div(className = 'row',
                              children=[
@@ -252,12 +256,22 @@ def serve_layout():
                     html.Br(),
                     html.Br(),
                     html.Div(id='ennuste'),
-                    html.Label(['Datan lähde: ', html.A('THL', href='https://thl.fi/fi/tilastot-ja-data/aineistot-ja-palvelut/avoin-data/varmistetut-koronatapaukset-suomessa-covid-19-')]),
-                    html.Label(['Lassoregression dokumentaatio: ', html.A('Scikit-Learn', href='https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html#')]),
-                    html.Label(['Regressiometriikoiden dokumentaatio: ', html.A('Scikit-Learn', href='https://scikit-learn.org/stable/modules/model_evaluation.html#regression-metrics')]),
-                    html.Label(['Katso toteutuneet koronatiedot ', html.A('täältä.', href='http://bit.ly/turkukorona'),
-                    html.Label(['Tehnyt Tuomas Poukkula. ', html.A('Seuraa Twitterissä.', href='https://twitter.com/TuomasPoukkula')]),
-                    ])
+                    html.Label(['Datan lähde: ', 
+                                html.A('Tilastokeskus', href='http://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaerak/statfin_vaerak_pxt_11re.px/')
+                               ]),
+                    html.Label(['Satunnaismetsä Wikipediassa: ', 
+                                html.A('Wikipedia', href='https://en.wikipedia.org/wiki/Random_forest')
+                               ]),
+                    html.Label(['Regressiometriikoista : ', 
+                                html.A('Medium', href='https://towardsdatascience.com/regression-an-explanation-of-regression-metrics-and-what-can-go-wrong-a39a9793d914')
+                               ]),
+                    html.Label(['Tehnyt Tuomas Poukkula. ', 
+                                html.A('Seuraa Twitterissä.', href='https://twitter.com/TuomasPoukkula')
+                               ]),
+                    html.Label(['Seuraa myös LinkedIn:ssä. ', 
+                                html.A('LinkedIn', href='https://www.linkedin.com/in/tuomaspoukkula/')
+                               ]),
+                    
         
         
     ])
@@ -312,12 +326,7 @@ def update_test(value):
 @app.callback(
     Output('ennuste','children'),
     [
-#     Input('pituus','value'),
-#     Input('puut','value'),
-#     Input('alkuvuosi','value'),
-#     Input('testikoko','value'),
-#     Input('hed','value'),
-#     Input('kunnat','value')
+
     Input('launch', 'n_clicks')
     ],
     [
@@ -327,7 +336,7 @@ def update_test(value):
     State('testikoko','value'),
     State('hed','value'),
     State('kunnat','value')
-        #State('launch', 'n_clicks')
+    
     ]
 )
 def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
@@ -729,8 +738,8 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
         chain = 'MAE: '
         chain+= str(round(mae,2))
-        chain+=', Virhemarginaali: '
-        chain+=str(round(margin,2))
+       # chain+=', Virhemarginaali: '
+       # chain+=str(round(margin,2))
         chain+=', NMAE: '
         chain+= str(nmae)
         chain+=', RMSE: '
@@ -989,17 +998,7 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
 
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     
 app.layout= serve_layout
 #Aja sovellus.
