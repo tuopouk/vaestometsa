@@ -26,6 +26,9 @@ from dash.dependencies import Input, Output, State
 from flask import Flask
 import os
 import dash_daq as daq
+import base64
+import io
+#from flask import send_file
 
 url = 'http://pxnet2.stat.fi/PXWeb/api/v1/fi/StatFin/vrm/vaerak/statfin_vaerak_pxt_11re.px'
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
@@ -256,6 +259,7 @@ def serve_layout():
                     html.Br(),
                     html.Br(),
                     html.Div(id='ennuste'),
+
                     html.Label(['Datan lähde: ', 
                                 html.A('Tilastokeskus', href='http://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaerak/statfin_vaerak_pxt_11re.px/')
                                ]),
@@ -267,11 +271,10 @@ def serve_layout():
                                ]),
                     html.Label(['Sovellus GitHubissa: ', 
                                 html.A('GitHub', href='https://github.com/tuopouk/vaestometsa/tree/master')
-                               ])
+                               ]),
                     html.Label(['Tehnyt Tuomas Poukkula. ', 
                                 html.A('Seuraa Twitterissä.', href='https://twitter.com/TuomasPoukkula')
                                ]),
-          
                     html.Label(['Seuraa myös LinkedIn:ssä. ', 
                                 html.A('LinkedIn', href='https://www.linkedin.com/in/tuomaspoukkula/')
                                ]),
@@ -325,7 +328,19 @@ def update_test(value):
     return 'Valittu testikoko: {} '.format(
         str(value)+' %'
     )  
+
+def apply_uncertainty(year, first_predicted):
+    
+    if year < first_predicted:
+        return 'Toteutunut'
+    if year in range(first_predicted, first_predicted+11):
+        return 'Ennuste'
+    if year in range(first_predicted+11,first_predicted+21):
+        return 'Epävarma ennuste'
+    if year > first_predicted + 20:
+        return 'Erittäin epävarma ennuste'
         
+
     
 @app.callback(
     Output('ennuste','children'),
@@ -859,10 +874,31 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
         toteutunut = pd.concat([nollat_[(nollat_.vuosi<alkuvuosi)][['vuosi','ikä','ennusta']],väestö_[(väestö_.vuosi<alkuvuosi)][['vuosi','ikä','ennusta']]],axis=0)
         toteutunut = toteutunut.sort_values(by='ikä')
-
+        
+        
 
         res_group = result.groupby('vuosi').agg({'ennusta':'sum'})
         res_group.ennusta=np.ceil(res_group.ennusta).astype(int)
+        
+        result['kaupunki'] = city
+        
+        
+        df = result.sort_values(by=['vuosi','ikä'])
+        
+        df['Ennuste/Toteutunut'] = df.apply(lambda x: apply_uncertainty(x['vuosi'],alkuvuosi),axis=1)
+        df = df.set_index('vuosi')
+
+        
+        xlsx_io = io.BytesIO()
+        writer = pd.ExcelWriter(xlsx_io, engine='xlsxwriter')
+        df.to_excel(writer, sheet_name=city+'_'+datetime.now().strftime('%d_%m_%Y'))
+        writer.save()
+        xlsx_io.seek(0)
+        # https://en.wikipedia.org/wiki/Data_URI_scheme
+        media_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        data = base64.b64encode(xlsx_io.read()).decode("utf-8")
+        href_data_downloadable = f'data:{media_type};base64,{data}'
+        
 
         return html.Div(children = [
 
@@ -997,7 +1033,19 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
                                           )
                        )
-             )])
+             ),
+        
+           html.Br(),
+                    html.A(
+                        'Lataa Excel-taulukko. ',
+                        id='excel-download',
+                        download=city+'_'+datetime.now().strftime('%d_%m_%Y_%H:%M')+".xlsx",
+                        href=href_data_downloadable,
+                        target="_blank"
+                    ),
+            html.Br(),
+            html.Br()
+        ])
 
 
 
