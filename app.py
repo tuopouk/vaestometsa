@@ -265,9 +265,13 @@ def serve_layout():
                     html.Label(['Regressiometriikoista : ', 
                                 html.A('Medium', href='https://towardsdatascience.com/regression-an-explanation-of-regression-metrics-and-what-can-go-wrong-a39a9793d914')
                                ]),
+                    html.Label(['Sovellus GitHubissa: ', 
+                                html.A('GitHub', href='https://github.com/tuopouk/vaestometsa/tree/master')
+                               ])
                     html.Label(['Tehnyt Tuomas Poukkula. ', 
                                 html.A('Seuraa Twitterissä.', href='https://twitter.com/TuomasPoukkula')
                                ]),
+          
                     html.Label(['Seuraa myös LinkedIn:ssä. ', 
                                 html.A('LinkedIn', href='https://www.linkedin.com/in/tuomaspoukkula/')
                                ]),
