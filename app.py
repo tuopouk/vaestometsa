@@ -886,8 +886,12 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         df = result.sort_values(by=['vuosi','ikä'])
         
         df['Ennuste/Toteutunut'] = df.apply(lambda x: apply_uncertainty(x['vuosi'],alkuvuosi),axis=1)
-        df = df.set_index('vuosi')
-
+        
+        df.columns = [c.capitalize() for c in df.columns]
+        df = df.set_index('Vuosi')
+        
+        df = df[['Kaupunki','Ikä', 'Ennuste/toteutunut','Ennusta']]
+        df = df.rename(columns={'Ennusta':'Väestö','Ennuste/toteutunut':'Ennuste/Toteutunut'})
         
         xlsx_io = io.BytesIO()
         writer = pd.ExcelWriter(xlsx_io, engine='xlsxwriter')
