@@ -1037,7 +1037,7 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         
            html.Br(),
                     html.A(
-                        'Lataa Excel-taulukko. ',
+                        'Lataa yksityiskohtainen Excel-taulukko. ',
                         id='excel-download',
                         download=city+'_'+datetime.now().strftime('%d_%m_%Y_%H:%M')+".xlsx",
                         href=href_data_downloadable,
