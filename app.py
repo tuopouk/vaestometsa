@@ -31,6 +31,7 @@ import io
 #from flask import send_file
 
 number_genetive = {1:'yhden',2:'kahden',3:'kolmen'}
+number_to = {1:'yhdelle',2:'kahdelle',3:'kolmelle'}
 
 url = 'http://pxnet2.stat.fi/PXWeb/api/v1/fi/StatFin/vrm/vaerak/statfin_vaerak_pxt_11re.px'
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
@@ -51,7 +52,8 @@ city_options = [{'label':s, 'value': s} for s in sorted(list(cities.index))]
 ennuste_url = "http://pxnet2.stat.fi/PXWeb/api/v1/fi/StatFin/vrm/vaenn/statfin_vaenn_pxt_128v.px"
 tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables'][1]['valueTexts']]
 
-
+toteutuneet_ennusteet = len([c for c in vuodet if c in tk_ennustevuodet])
+vika_vuosi = min([c for c in vuodet if c in tk_ennustevuodet])
 
 #last_year = 2070
 ennusteen_pituus = 30
@@ -141,7 +143,6 @@ def serve_layout():
         
         return html.Div(children = [
                     html.Br(),
-                    html.Br(),
                     html.H1('VäestöMetsä',style=dict(textAlign='center',fontSize=55, fontFamily='Arial')),
                     html.Br(),
                     html.H2('Johdanto',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
@@ -150,8 +151,8 @@ def serve_layout():
                     html.H2('Ennusteen rakenne',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
                     html.P('Tärkeä kysymys satunnaismetsän käytössä on metsässä olevien puiden määrä, jonka saa tässä sovelluksessa itse valita. Muu ennustamiseen ja ennusteen laadun testaamiseen liittyvä parametrien valinta on myös mahdollistettu käyttäjän tehtäväksi. Käyttäjä voi valita ennustettavan kunnan sekä ennusteen pituuden. Tässä on hyvä huomioida, että ennusteen laatu olennaisesti heikkenee mitä pitemmälle ajalle ennuste tehdään. Käyttäjän on myös mahdollista testata ennusteen laatua, jättämällä haluttu osus datasta testidataksi. Tällöin ohjelma pyrkii ennustamaan valitun kunnan väestön viimeisimmiltä vuosilta. Opetusdatan määrän voi myös itse päättää. Tässä ajatuksena on, että liian kaukaa historiasta oleva data ei välttämättä ole edustavaa tulevaisuutta ennustettaessa tai tämän päivän väestöä selitettäessä. Malli on hyvin yksinkertainen ja perustuu siihen, että jokaisen vuoden tietyn ikäinen väestö selittyy iällä sekä edellisen vuoden vuotta nuorempien määrällä. Ikä sinänsä selittää kuolemanvaaraa (esim. 90 -vuotiailla on huomattavasti lyhyempi elinajanodote kuin 7 -vuotiailla) ja väestön muutosta (esim. opiskeluikäiset muuttavat toisiin kaupunkeihin opiskelumahdollisuuksien mukaan). Nollavuotiaat ennustetaan omalla satunnaismetsällään perustuen käyttäjän valitsemiin hedelmällisyysikiin. Näin voidaan määrittää minkä ikäisen väestön oletataan selittävän nollavuotiaiden määrää.' ),
                     html.Br(),
-                    html.H2('Ennusteen testaaminen',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
-                    html.P('Kun kaikki valinnat on tehty, käyttäjä voi ajaa testin ja luoda ennusteprojektion. Tässä tapauksessa ennusteen laatua mitataan kolmella indikaattorilla (absoluuttinen keskivirhe (MAE), keskimääräinen neliövirhe (RMSE) sekä selitysaste (R²) ). Se onko ennuste luotettava indikaattorien perusteella jää käyttäjän harkitsemaksi. Tässä sovelluksessa indikaattorien hyvyyttä kuvaa suuntaa antavat liikennevalovärit (punainen, oranssi ja vihreä). Kuvaajissa on myös mukana Tilastokeskuksen ennuste. Tilastokeskus tekee väestöennusteen kunnittain kolmen vuoden välein. Viimeisin Tilastokeskuksen ennuste on vuodelta '+str(min(tk_ennustevuodet))+', joten Tilastokeskuksen ennustemallin testaaminen tällä ohjelmalla on varsin rajoittunutta. Molemmat ennusteet kuitenkin saa Excel-tiedostona ulos testien ja projektioiden tekemisen jälkeen sivun alalaitaan ilmestyvän linkin kautta.'),
+                    html.H2('Ennusteen simuloiminen ja testaaminen',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
+                    html.P('Väestön ennustamisessa ensimmäinen ennustettava vuosi ennustetaan tiedettyjen edellisen vuoden toteutuneiden faktatietojen perusteella. Seuraavan vuoden ennustamisessa hyödynnetään edellisen vuoden ennustettuja tietoja ja näin jatketaan kunnes kaikki tulevat vuodet on käyty läpi. Simulaatiossa tämä toimenpide suoritetaan menneisyydelle. Näin saadaan parempi käsitys kuinka hyvin ennustemalli toimisi pitemmälle tulevaisuuteen. Tässä tapauksessa simulaation laatua mitataan kolmella indikaattorilla (absoluuttinen keskivirhe (MAE), keskimääräinen neliövirhe (RMSE) sekä selitysaste (R²) ). Se onko ennuste luotettava indikaattorien perusteella jää käyttäjän harkitsemaksi. Tässä sovelluksessa indikaattorien hyvyyttä kuvaa suuntaa antavat liikennevalovärit (punainen, oranssi ja vihreä). Mukaan on myös otettu Tilastokeskuksen ennuste, jonka ennustetut väestömäärät on testattu niiltä vuosilta, joilta on olemassa myös Tilastokeskuksen vahvistamat väestön toteumatiedot. Tilastokeskus tekee väestöennusteen kunnittain kolmen vuoden välein. Viimeisin Tilastokeskuksen ennuste on vuodelta '+str(min(tk_ennustevuodet))+'. Testaus suoritetaan samoilla indikaattoreilla kuin simulaatiossa. Testaaminen eroaa simulaatiosta siten, että testaamisessa vain vertaillaan saatuja arvoja riippumatta arvojen muodostustavasta. Sekä Tilastokeskuksen, että tämän koneoppimismallin testitiedot saa vietyä, muiden metatietojen ohella, Excel-tiedostoon sivun alalaitaan ilmestyvän linkin kautta. Itse väestöennusteprojektio luodaan automaattisesti testiajojen jälkeen.'),
                     html.Br(),
                     html.H2('Lopuksi',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
                     html.P('Tämä aplikaatio on luotu tarkoituksena tutustuttaa käyttäjä koneoppimisen ihmeelliseen maailmaan. Toivotan siis iloisia hetkiä väestön ennustamisen ja ennakoivan analytiikan sekä tämän aplikaation käytön aikana. Lisätietoja käytetyistä tekniikoista ja testausmääreistä löydät tämän sivun alaosasta.'),
@@ -226,13 +227,13 @@ def serve_layout():
                                                  html.H2('Valitse opetuksen aloitusvuosi.'),
                                                  dcc.Slider(id='alkuvuosi',
                                                            min=min(vuodet),
-                                                           max=max(vuodet)-1,
+                                                           max=max(vuodet)-2,
                                                            step=1,
                                                            value=2010,
                                                            marks = {
                                                            min(vuodet): str(min(vuodet)),
 
-                                                           max(vuodet)-1: str(max(vuodet)-1)
+                                                           max(vuodet)-2: str(max(vuodet)-2)
                                                            },
                                                            updatemode='drag'
                                                           ),
@@ -379,7 +380,7 @@ def apply_uncertainty(year, first_predicted):
     
     ]
 )
-def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
+def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
     if n_clicks > 0:
     
@@ -388,12 +389,14 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
         city = kunta        
 
-        test_size = testikoko/100.3
+        test_size = testikoko/100
 
 
         testivuodet = int(math.ceil((max(vuodet) - aloita)*test_size))
 
         testi_alkuvuosi = max(vuodet)-testivuodet
+        
+        testattavat = ', '.join([str(testi_alkuvuosi+i) for i in range(testivuodet+1)])
         
 
         hed_min = min(hed)
@@ -403,10 +406,6 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         not_found = True
         
 
-
-
-
-        #city = input('Anna kaupunki: ')
 
         while not_found:
             try:
@@ -690,7 +689,7 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                 tk_data = ennuste_json.json()
                 blocked=False
             except:
-                #print(ennuste_json.status_code)
+                
                 time.sleep(2)
         
 
@@ -728,12 +727,12 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             nmae_tk = round(mean_absolute_error(tk_test.väestö,tk_test['Tilastokeskuksen ennuste'])/tk_test.väestö.std(),2)
             nrmse_tk = round(math.sqrt(mean_squared_error(tk_test.väestö,tk_test['Tilastokeskuksen ennuste']))/tk_test.väestö.std(),2)
             r2_tk = round(r2_score(tk_test.väestö,tk_test['Tilastokeskuksen ennuste']),2)
-            tk_chain = 'Tilastokeskuksen vastaavat arvot '+number_genetive[len(pd.unique(tk_test.index))]+' vuoden testidatalla: MAE: '+str(nmae_tk)+', RMSE: '+str(nrmse_tk)+', R²: '+str(r2_tk)+'.'
+            tk_chain = 'Tilastokeskuksen ennusteen vastaavat arvot MAE: '+str(nmae_tk)+', RMSE: '+str(nrmse_tk)+', R²: '+str(r2_tk)+'.'
         except:
             # Ei voi testata.
             tk_chain = ''
             
-        
+       # Nollat ja 1-100 mähläys 
 
         nollat_prev = data_df[data_df.ikä==0] 
         nollat_prev = nollat_prev.loc[nollat_prev.index < nollat_prev.index.max()]
@@ -798,6 +797,10 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
 
         # Testi
+        
+        
+        
+        # Simulaatio: opetus ensimmäiseen testivuoteen asti, minkä jälkeen projektiota jatketaan kuten normaalisti. Lopuksi mitataan simulaation laatu.
 
         scl = StandardScaler()
         scl2 = StandardScaler()
@@ -944,21 +947,109 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             r2_text='Hyvä'
         
 
-        chain = 'MAE: '
-        chain+= str(round(mae,2))
+#         chain = 'MAE: '
+#         chain+= str(round(mae,2))
        # chain+=', Virhemarginaali: '
        # chain+=str(round(margin,2))
-        chain+=', NMAE: '
+        chain=''
+        chain+='NMAE: '
         chain+= str(nmae)
-        chain+=', RMSE: '
-        chain+=str(round(rmse,2))
+#         chain+=', RMSE: '
+#         chain+=str(round(rmse,2))
         chain+=', NRMSE: '
         chain+= str(nrmse)
         chain+=', R²: '
         chain+=str(r2)
 
 
+        
+        # Testi: ennustetaan viimeisimpien vuosien väestö ja vertaillaan Tilastokeskuksen ennusteeseen (ne vuodet, jotka ovat toteutuneissa vuosissa ja Tilastokeskuksen ennusteessa).
+        
+        if toteutuneet_ennusteet > 0:
+                       
+            
+            scl = StandardScaler()
+            scl2 = StandardScaler()
 
+            väestö_ = väestö.copy()
+            nollat_=nollat.copy()
+
+            
+            x = väestö_[väestö_.vuosi<vika_vuosi][norm_selittäjät]
+            X = scl.fit_transform(x)
+            y= väestö_[väestö_.vuosi<vika_vuosi]['kohorttimuutos']
+
+            ridge.fit(X,y)
+
+            x = nollat_[nollat_.vuosi<vika_vuosi][nolla_selittäjät]
+            X = scl2.fit_transform(x)
+            y = nollat_[nollat_.vuosi<vika_vuosi]['muutos']
+
+            svr.fit(X,y)
+
+            v = väestö_.copy()
+
+            v_20 = v[v.vuosi==vika_vuosi]
+            v = v[v.vuosi<vika_vuosi]
+
+            v_20.kohorttimuutos =  ridge.predict(scl.transform(v_20[norm_selittäjät]))
+            v_20.ennusta = np.maximum(0,v_20.lähtö + v_20.kohorttimuutos)
+            v = pd.concat([v,v_20],axis=0)
+
+
+            n = nollat_.copy()
+
+
+            n_20 = n[n.vuosi==vika_vuosi]
+            n = n[n.vuosi<vika_vuosi]
+
+            n_20.muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+            n_20.ennusta = np.maximum(0,n_20.lähtö + n_20.muutos)
+            n = pd.concat([n,n_20],axis=0)
+
+          
+
+               
+
+
+            result = pd.concat([n[['vuosi',
+                                   'ikä',
+
+                                   'ennusta']],v[['vuosi',
+                                                  'ikä',
+
+                                                  'ennusta']]],axis = 0)
+
+            quick_test_result=result.sort_values(by='ikä')
+            toteutunut = pd.concat([nollat_[(nollat_.vuosi==vika_vuosi)][['vuosi','ikä','ennusta']],väestö_[(väestö_.vuosi==vika_vuosi)][['vuosi','ikä','ennusta']]],axis=0)
+
+    
+            quick_test_toteutunut = toteutunut.sort_values(by='ikä')
+
+            quick_mae = mean_absolute_error(quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta, 
+                                      quick_test_result[quick_test_result.vuosi==vika_vuosi].ennusta)
+    #         margin= 1.96*(test_toteutunut[test_toteutunut.vuosi>=testi_alkuvuosi].ennusta- test_result[test_result.vuosi>=testi_alkuvuosi].ennusta).std()/math.sqrt(len(test_result[test_result.vuosi>=testi_alkuvuosi]))
+
+            quick_nmae = round(quick_mae / quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta.std(),2)
+
+            quick_rmse = math.sqrt(mean_squared_error(quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta, 
+                                               quick_test_result[quick_test_result.vuosi==vika_vuosi].ennusta))
+
+            quick_nrmse = round(quick_rmse / quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta.std(),2)
+
+            quick_r2 = round(r2_score(quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta, 
+                           quick_test_result[quick_test_result.vuosi==vika_vuosi].ennusta),2)
+            
+            try:
+                quick_chain='Testitulokset '+str(number_to[toteutuneet_ennusteet])+' viimeisimmälle vuodelle: '
+                quick_chain+='MAE: '
+                quick_chain+= str(quick_nmae)
+                quick_chain+=', RMSE: '
+                quick_chain+= str(quick_nrmse)
+                quick_chain+=', R²: '
+                quick_chain+=str(quick_r2)+'.'
+            except:
+                quick_chain = ''
 
         # Projektio
 
@@ -1065,7 +1156,7 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         toteutunut = pd.concat([nollat_[(nollat_.vuosi<alkuvuosi)][['vuosi','ikä','ennusta']],väestö_[(väestö_.vuosi<alkuvuosi)][['vuosi','ikä','ennusta']]],axis=0)
         toteutunut = toteutunut.sort_values(by='ikä')
         
-        
+        # Dokumentoi
 
         res_group = result.groupby('vuosi').agg({'ennusta':'sum'})
         res_group.ennusta=np.ceil(res_group.ennusta).astype(int)
@@ -1084,16 +1175,25 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         df = df.rename(columns={'Ennusta':'Väestö','Ennuste/toteutunut':'Ennuste/Toteutunut'})
         
         meta_data = pd.DataFrame([{'Kaupunki':city,
-                                    'Ennusteen aloitusvuosi':alku,
+                                   'Opetuksen aloitusvuosi':alku,
                                    'Pienin hedelmällisyysikä':hed_min,
                                    'Suurin hedelmällisyysikä':hed_max,
                                    'Puiden lukumäärä':puut,
-                                   'MAE': nmae,
-                                   'RMSE': nrmse,
-                                   'R²':r2
+                                   'Simulaation MAE': nmae,
+                                   'Simulaation RMSE': nrmse,
+                                   'Simulaation R²':r2,
+                                   'Simulaatiovuodet yhteensä': len(testattavat.split(',')),
+                                   'Simulaatiovuodet': testattavat,
+                                   'Testin MAE': quick_nmae,
+                                   'Testin RMSE': quick_nrmse,
+                                   'Testin R²':quick_r2,
+                                   'Testatut vuodet':toteutuneet_ennusteet,
+                                   'Viimeisin testivuosi': vika_vuosi,
+                                   'Tilastokeskuksen MAE': nmae_tk,
+                                   'Tilastokeskuksen RMSE': nrmse_tk,
+                                   'Tilastokeskuksen R²':r2_tk
                                   }]).T.reset_index().rename(columns={'index':'Ennusteen metatiedot',0:'Arvo'}).set_index('Ennusteen metatiedot')
-        
-        
+       
         xlsx_io = io.BytesIO()
         writer = pd.ExcelWriter(xlsx_io, engine='xlsxwriter')
         df.to_excel(writer, sheet_name= 'Väestöennuste_'+city)#city+'_'+datetime.now().strftime('%d_%m_%Y'))
@@ -1147,7 +1247,7 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
                                                        xanchor='left', 
                                                        yanchor='bottom',
-                                                       text=city.strip().capitalize()+': väestöennustetesti '+str(testi_alkuvuosi)+' - '+str(test_result.vuosi.max()),
+                                                       text=city.strip().capitalize()+': väestöennustesimulaatio '+str(testi_alkuvuosi)+' - '+str(test_result.vuosi.max()),
                                                        font=dict(family='Arial',
                                                                  size=30,
                                                                  color='black'
@@ -1161,6 +1261,8 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
 
 
+        html.Br(),
+        html.H2('Simulaatioindikaattorit',style=dict(textAlign='center',fontSize=40, fontFamily='Arial')),
         html.Br(),
         html.Div(className = 'row', children =[
             html.Div(className = 'four columns', children = [
@@ -1203,8 +1305,8 @@ def predict(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         ]
                 ),
         html.Br(),
-        html.P(chain),
-        html.P(tk_chain),
+        html.P(quick_chain, style = dict(textAlign='center', fontWeight='bold', fontFamily='Arial',fontSize=16)),
+        html.P(tk_chain, style = dict(textAlign='center', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.Br(),
         dcc.Graph(figure = go.Figure(
             data=[
