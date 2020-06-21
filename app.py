@@ -52,10 +52,10 @@ city_options = [{'label':s, 'value': s} for s in sorted(list(cities.index))]
 ennuste_url = "http://pxnet2.stat.fi/PXWeb/api/v1/fi/StatFin/vrm/vaenn/statfin_vaenn_pxt_128v.px"
 tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables'][1]['valueTexts']]
 
-toteutuneet_ennusteet = len([c for c in vuodet if c in tk_ennustevuodet])
-vika_vuosi = min([c for c in vuodet if c in tk_ennustevuodet])
 
-# Alussa vain jotain parametriarvoja, koska Dash-sovellus lataa kaikki callbackit, kun sovelluksen käynnistää.
+ennuste_leikkaus = [c for c in vuodet if c in tk_ennustevuodet]
+toteutuneet_ennusteet = len(ennuste_leikkaus)
+vika_vuosi = min(ennuste_leikkaus)
 
 #last_year = 2070
 ennusteen_pituus = 30
@@ -404,15 +404,16 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         hed_min = min(hed)
         hed_max = max(hed)
 
-        
+
         not_found = True
         
+
+
         while not_found:
             try:
                 city_code = cities.loc[city.strip().capitalize()].aluekoodi
                 not_found = False
             except: 
-                # Jäänyt testeistä. Kaupunki valitaan valikosta. Joten tähän ei missään kohtaa mennä.
                 city = input("Ei löytynyt, tarkista oikeikirjoitus. ")
 
 
@@ -549,7 +550,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                 data = data_json.json()
                 blocked=False
             except:
-                #print(data_json.status_code)
+                
                 time.sleep(2)
 
         # Mähläys
@@ -728,11 +729,31 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             nmae_tk = round(mean_absolute_error(tk_test.väestö,tk_test['Tilastokeskuksen ennuste'])/tk_test.väestö.std(),2)
             nrmse_tk = round(math.sqrt(mean_squared_error(tk_test.väestö,tk_test['Tilastokeskuksen ennuste']))/tk_test.väestö.std(),2)
             r2_tk = round(r2_score(tk_test.väestö,tk_test['Tilastokeskuksen ennuste']),2)
+            
+            v_tot = int(tk_test[tk_test.index.isin(ennuste_leikkaus)].väestö.sum())
+            v_enn = int(tk_test[tk_test.index.isin(ennuste_leikkaus)]['Tilastokeskuksen ennuste'].sum())
+            diff = v_enn-v_tot
+            
+            v_tot_documnet = v_tot
+            v_enn_document = v_enn
+            
+            if diff > 0:
+                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä enemmän.'
+            elif diff < 0:
+                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä vähemmän.'
+            else:
+                diff_word = 'ennusti täsmälleen saman väestön.'
+            
+            
+            
             tk_chain = 'Tilastokeskuksen ennusteen vastaavat arvot MAE: '+str(nmae_tk)+', RMSE: '+str(nrmse_tk)+', R²: '+str(r2_tk)+'.'
+            #tk_chain+= '. Toteutunut väestö vuodelle '+str(tk_test[tk_test.vuosi==tk_test.vuosi.max()].vuosi)+': '+'{:,}'.format()
+            tk_chain+= '. Tilastokeskuksen ennuste: '+'{:,}'.format(v_enn).replace(',',' ')
+            tk_chain += '. Tilastokeskuksen ennuste '+diff_word
         except:
             # Ei voi testata.
             tk_chain = ''
-            
+
        # Nollat ja 1-100 mähläys 
 
         nollat_prev = data_df[data_df.ikä==0] 
@@ -902,6 +923,8 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         toteutunut = pd.concat([nollat_[(nollat_.vuosi<alkuvuosi)][['vuosi','ikä','ennusta']],väestö_[(väestö_.vuosi<alkuvuosi)][['vuosi','ikä','ennusta']]],axis=0)
         test_toteutunut = toteutunut.sort_values(by='ikä')
         
+     
+        
         mae = mean_absolute_error(test_toteutunut[test_toteutunut.vuosi>=testi_alkuvuosi].ennusta, 
                                   test_result[test_result.vuosi>=testi_alkuvuosi].ennusta)
         margin= 1.96*(test_toteutunut[test_toteutunut.vuosi>=testi_alkuvuosi].ennusta- test_result[test_result.vuosi>=testi_alkuvuosi].ennusta).std()/math.sqrt(len(test_result[test_result.vuosi>=testi_alkuvuosi]))
@@ -968,7 +991,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         
         if toteutuneet_ennusteet > 0:
                        
-            
+                        
             scl = StandardScaler()
             scl2 = StandardScaler()
 
@@ -990,7 +1013,8 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
             v = väestö_.copy()
 
-            v_20 = v[v.vuosi==vika_vuosi]
+            v_20 = v[(v.vuosi.isin(ennuste_leikkaus))]
+            
             v = v[v.vuosi<vika_vuosi]
 
             v_20.kohorttimuutos =  ridge.predict(scl.transform(v_20[norm_selittäjät]))
@@ -1001,16 +1025,14 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             n = nollat_.copy()
 
 
-            n_20 = n[n.vuosi==vika_vuosi]
+            n_20 = n[(n.vuosi.isin(ennuste_leikkaus))]
             n = n[n.vuosi<vika_vuosi]
 
             n_20.muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
             n_20.ennusta = np.maximum(0,n_20.lähtö + n_20.muutos)
             n = pd.concat([n,n_20],axis=0)
 
-          
-
-               
+                         
 
 
             result = pd.concat([n[['vuosi',
@@ -1022,24 +1044,41 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                                                   'ennusta']]],axis = 0)
 
             quick_test_result=result.sort_values(by='ikä')
-            toteutunut = pd.concat([nollat_[(nollat_.vuosi==vika_vuosi)][['vuosi','ikä','ennusta']],väestö_[(väestö_.vuosi==vika_vuosi)][['vuosi','ikä','ennusta']]],axis=0)
+            toteutunut = pd.concat([nollat[(nollat.vuosi.isin(ennuste_leikkaus))][['vuosi','ikä','ennusta']],väestö[(väestö.vuosi.isin(ennuste_leikkaus))][['vuosi','ikä','ennusta']]],axis=0)
 
     
             quick_test_toteutunut = toteutunut.sort_values(by='ikä')
-
-            quick_mae = mean_absolute_error(quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta, 
-                                      quick_test_result[quick_test_result.vuosi==vika_vuosi].ennusta)
+        
+            qtr = quick_test_result[quick_test_result.vuosi.isin(ennuste_leikkaus)]
+            qtt = quick_test_toteutunut[quick_test_toteutunut.vuosi.isin(ennuste_leikkaus)]
+            
+            
+            
+            quick_mae = mean_absolute_error(qtt.ennusta, qtr.ennusta)
     #         margin= 1.96*(test_toteutunut[test_toteutunut.vuosi>=testi_alkuvuosi].ennusta- test_result[test_result.vuosi>=testi_alkuvuosi].ennusta).std()/math.sqrt(len(test_result[test_result.vuosi>=testi_alkuvuosi]))
 
-            quick_nmae = round(quick_mae / quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta.std(),2)
+            quick_nmae = round(quick_mae / qtt.ennusta.std(),2)
 
-            quick_rmse = math.sqrt(mean_squared_error(quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta, 
-                                               quick_test_result[quick_test_result.vuosi==vika_vuosi].ennusta))
+            quick_rmse = math.sqrt(mean_squared_error(qtt.ennusta, 
+                                               qtr.ennusta))
 
-            quick_nrmse = round(quick_rmse / quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta.std(),2)
+            quick_nrmse = round(quick_rmse / qtt.ennusta.std(),2)
 
-            quick_r2 = round(r2_score(quick_test_toteutunut[quick_test_toteutunut.vuosi==vika_vuosi].ennusta, 
-                           quick_test_result[quick_test_result.vuosi==vika_vuosi].ennusta),2)
+            quick_r2 = round(r2_score(qtt.ennusta, 
+                          qtr.ennusta),2)
+            
+            tot_väestö = '{:,}'.format(int(qtt.ennusta.sum())).replace(',',' ')
+            enn_väestö = '{:,}'.format(int(np.ceil(qtr.ennusta.sum()))).replace(',',' ')
+            diff = int(np.ceil(qtr.ennusta.sum()))-int(qtt.ennusta.sum())
+            
+            enn_document = int(np.ceil(qtr.ennusta.sum()))
+            
+            if diff > 0:
+                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä enemmän.'
+            elif diff < 0:
+                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä vähemmän.'
+            else:
+                diff_word = 'ennusti täsmälleen saman väestön.'
             
             try:
                 quick_chain='Testitulokset '+str(number_to[toteutuneet_ennusteet])+' viimeisimmälle vuodelle: '
@@ -1048,9 +1087,13 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                 quick_chain+=', RMSE: '
                 quick_chain+= str(quick_nrmse)
                 quick_chain+=', R²: '
-                quick_chain+=str(quick_r2)+'.'
+                quick_chain+=str(quick_r2)
+                quick_chain+= '. Toteutunut väestö vuosille '+', '.join([str(c) for c in ennuste_leikkaus])+': '+str(tot_väestö)
+                quick_chain+= '. Ennustettu väestö vuosille '+', '.join([str(c) for c in ennuste_leikkaus])+': '+str(enn_väestö)
+                quick_chain += ', Ennuste '+diff_word
             except:
                 quick_chain = ''
+                
 
         # Projektio
 
