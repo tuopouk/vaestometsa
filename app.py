@@ -741,7 +741,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             if diff > 0:
                 diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä enemmän.'
             elif diff < 0:
-                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä vähemmän.'
+                diff_word = 'erosi toteutuneesta: '+str(np.absolute(diff))+' henkilöä vähemmän.'
             else:
                 diff_word = 'ennusti täsmälleen saman väestön.'
             
