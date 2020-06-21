@@ -55,6 +55,8 @@ tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables
 toteutuneet_ennusteet = len([c for c in vuodet if c in tk_ennustevuodet])
 vika_vuosi = min([c for c in vuodet if c in tk_ennustevuodet])
 
+# Alussa vain jotain parametriarvoja, koska Dash-sovellus lataa kaikki callbackit, kun sovelluksen käynnistää.
+
 #last_year = 2070
 ennusteen_pituus = 30
 aloita = 2010
@@ -402,16 +404,15 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         hed_min = min(hed)
         hed_max = max(hed)
 
-
+        
         not_found = True
         
-
-
         while not_found:
             try:
                 city_code = cities.loc[city.strip().capitalize()].aluekoodi
                 not_found = False
             except: 
+                # Jäänyt testeistä. Kaupunki valitaan valikosta. Joten tähän ei missään kohtaa mennä.
                 city = input("Ei löytynyt, tarkista oikeikirjoitus. ")
 
 
