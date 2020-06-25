@@ -30,6 +30,8 @@ import base64
 import io
 #from flask import send_file
 
+spinner_type='graph'
+
 number_genetive = {1:'yhden',2:'kahden',3:'kolmen'}
 number_to = {1:'yhdelle',2:'kahdelle',3:'kolmelle'}
 
@@ -144,6 +146,7 @@ def serve_layout():
         
         
         return html.Div(children = [
+                    
                     html.Br(),
                     html.H1('VäestöMetsä',style=dict(textAlign='center',fontSize=55, fontFamily='Arial')),
                     html.Br(),
@@ -277,9 +280,10 @@ def serve_layout():
                     ),
                     html.Br(),
                     html.Button('Testaa ja ennusta.', id='launch', n_clicks=0),
+                    
                     html.Br(),
                     html.Br(),
-                    html.Div(id='ennuste'),
+                    dcc.Loading(id='spinner',fullscreen=False, type=spinner_type, children=[html.Div(id='ennuste')]),
 
                     html.Label(['Datan lähde: ', 
                                 html.A('StatFin', href='http://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaerak/statfin_vaerak_pxt_11re.px/')
