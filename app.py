@@ -102,7 +102,8 @@ ridge=RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=max_depth
                       min_weight_fraction_leaf=0.0, n_estimators=trees,
                       n_jobs=-1, oob_score=True, random_state=9876, verbose=0,
                       warm_start=False)
-
+tk_result = None
+prediction_result = None
 
 server = Flask(__name__)
 server.secret_key = os.environ.get('secret_key','secret')
@@ -346,6 +347,15 @@ def update_year(value):
     
     return 'Valittu opetuksen aloitusvuosi: {} '.format(
         str(value)
+    )
+
+@app.callback(
+    Output('year_selection_indicator', 'children'),
+    [Input('vuosivalitsin', 'value')])
+def update_vuosivalitsin(value):
+    
+    return 'Valittu vuosi: {} '.format(
+        str(value)
     )  
 
 @app.callback(
@@ -387,6 +397,10 @@ def apply_uncertainty(year, first_predicted):
     ]
 )
 def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
+    
+    global prediction_result
+    global tk_result
+    global ennusteen_pituus
 
     if n_clicks > 0:
     
@@ -928,7 +942,9 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         toteutunut = pd.concat([nollat_[(nollat_.vuosi<alkuvuosi)][['vuosi','ikä','ennusta']],väestö_[(väestö_.vuosi<alkuvuosi)][['vuosi','ikä','ennusta']]],axis=0)
         test_toteutunut = toteutunut.sort_values(by='ikä')
         
-     
+        simulation_test = test_result.copy().set_index('vuosi')
+        simulation_true = test_toteutunut.copy().set_index('vuosi')
+        
         
         mae = mean_absolute_error(test_toteutunut[test_toteutunut.vuosi>=testi_alkuvuosi].ennusta, 
                                   test_result[test_result.vuosi>=testi_alkuvuosi].ennusta)
@@ -1057,6 +1073,9 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             qtr = quick_test_result[quick_test_result.vuosi.isin(ennuste_leikkaus)]
             qtt = quick_test_toteutunut[quick_test_toteutunut.vuosi.isin(ennuste_leikkaus)]
             
+            
+            age_test = qtr[qtr.vuosi==min(ennuste_leikkaus)]
+            age_true = qtt[qtt.vuosi==min(ennuste_leikkaus)]
             
             
             quick_mae = mean_absolute_error(qtt.ennusta, qtr.ennusta)
@@ -1258,6 +1277,9 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         writer = pd.ExcelWriter(xlsx_io, engine='xlsxwriter')
         df.to_excel(writer, sheet_name= 'Väestöennuste_'+city)#city+'_'+datetime.now().strftime('%d_%m_%Y'))
         tk_data_df.to_excel(writer, sheet_name = 'TK väestöennuste_'+city)
+        simulation_test['Kaupunki'] = city
+        simulation_test = simulation_test[['Kaupunki','ikä','ennusta']]
+        simulation_test.reset_index().sort_values(by=['vuosi','ikä']).rename(columns={'vuosi':'Vuosi','ikä':'Ikä','ennusta':'Väestöennuste'}).set_index('Vuosi').loc[testi_alkuvuosi:].to_excel(writer, sheet_name = 'Simulaatiodata')
         meta_data.to_excel(writer, sheet_name = 'Ennusteen metadata')
         writer.save()
         xlsx_io.seek(0)
@@ -1270,8 +1292,13 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         tk_plot = tk_data_df.reset_index().groupby('Vuosi').agg({'Tilastokeskuksen ennuste':'sum'}).sort_index()
         tk_plot = tk_plot.loc[:alkuvuosi+ennusteen_pituus]
         
+        tk_result = tk_data_df
+        prediction_result = df
+        
         tk_min = tk_plot.index.min()
         tk_max = tk_plot.index.max()
+        
+        tk_latest_age = tk_data_df.loc[min(ennuste_leikkaus),:]
 
         return html.Div(children = [
 
@@ -1322,6 +1349,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
 
         html.Br(),
+        html.Br(),
         html.H2('Simulaatioindikaattorit',style=dict(textAlign='center',fontSize=40, fontFamily='Arial')),
         html.Br(),
         html.Div(className = 'row', children =[
@@ -1367,7 +1395,49 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         html.Br(),
         html.P(quick_chain, style = dict(textAlign='center', color = 'purple', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.P(tk_chain, style = dict(textAlign='center', color = 'blue', fontWeight='bold', fontFamily='Arial',fontSize=16)),
+        html.P('Alla koneoppimismallin ja Tilastokeskuksen ennusteen vertailua iän mukaan vuodelle '+str(alkuvuosi)+'.', style = dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.Br(),
+        dcc.Graph(figure = go.Figure(
+                            data =[
+                                go.Scatter(
+                                   x = age_test.ikä,
+                                   y = np.ceil(age_test.ennusta),
+                                   name = 'Ennuste',
+                                    mode='markers',
+                                   line = dict(color = 'red')
+                                ),
+                                go.Scatter(
+                                   x = age_true.ikä,
+                                   y = age_true.ennusta,
+                                    mode='markers',
+                                   name = 'Toteutunut',
+                                   line = dict(color = 'green')
+                                ),
+                                go.Scatter(
+                                   x = tk_latest_age.Ikä,
+                                   y = tk_latest_age['Tilastokeskuksen ennuste'],
+                                   name = 'Tilastokeskuksen ennuste',
+                                    mode='markers',
+                                   line = dict(color = 'blue')
+                                )
+                            ],
+                    layout= go.Layout(
+                                    xaxis = dict(title = 'Ikä'),
+                                    yaxis= dict(title = 'Väestö',
+                                                tickformat = ' '),
+                                    title = dict(xref='paper', 
+                                                 yref='paper', 
+                                                 xanchor='left', 
+                                                 yanchor='bottom',
+                                                 text=city.strip().capitalize()+': väestöennustetesti iän mukaan vuodelle '+str(min(ennuste_leikkaus)),
+                                                 font=dict(family='Arial',
+                                                                 size=30,
+                                                                 color='black'
+                                                                )
+                                 )
+                 )
+        )
+                 ),
         dcc.Graph(figure = go.Figure(
             data=[
 
@@ -1421,8 +1491,22 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                                           )
                        )
              ),
-        
-           html.Br(),
+            
+
+
+
+           html.Div(id='ikägraafi'),
+           html.H2('Valitse ennustevuosi, jota tarkastella iän mukaan.'),
+           dcc.Slider(id ='vuosivalitsin',
+                      min = alkuvuosi,
+                      max = alkuvuosi+ennusteen_pituus,
+                      value = alkuvuosi,
+                      marks = {alkuvuosi:str(alkuvuosi),
+                               tk_max: str(tk_max)+' (Tilastokeskuksen ennuste päättyy.)',
+                              alkuvuosi+ennusteen_pituus:str(alkuvuosi+ennusteen_pituus)}
+                     ),
+            html.Div(id = 'year_selection_indicator', style={'margin-top': 20}),
+            html.Br(),
                     html.A(
                         'Lataa yksityiskohtainen Excel-taulukko. ',
                         id='excel-download',
@@ -1435,8 +1519,92 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         ])
 
 
+    
+    
+@app.callback(
+    Output('ikägraafi','children'),
+    [
+
+    Input('vuosivalitsin', 'value'),
+    Input('kunnat','value')
+    ]
+)
+def update_age_graph(year,city):
+    
+    
+    try:
+        tk_plot = tk_result.loc[year,:]
+        ennuste_plot = prediction_result.loc[year,:]
+        return dcc.Graph(figure = go.Figure(data=[
+                                go.Scatter(x = ennuste_plot.Ikä,
+                                          y = np.ceil(ennuste_plot.Väestö),
+                                          name = 'Ennuste',
+                                           mode = 'markers',
+                                          line = dict(color='red')),
+                                go.Scatter(x = tk_plot.Ikä,
+                                          y = tk_plot['Tilastokeskuksen ennuste'],
+                                          name = 'Tilastokeskuksen ennuste',
+                                           mode = 'markers',
+                                          line = dict(color='blue'))],
+                                layout = go.Layout(xaxis = dict(title = 'Ikä'),
+                                          yaxis= dict(title = 'Väestö', 
+                                                                  tickformat = ' '),
+                                          title = dict(xref='paper', 
+                                                       yref='paper', 
+
+                                                       xanchor='left', 
+                                                       yanchor='bottom',
+                                                       text=city.strip().capitalize()+': väestöennuste iän mukaan vuodelle '+str(year),
+                                                       font=dict(family='Arial',
+                                                                 size=30,
+                                                                 color='black'
+                                                                ),
 
 
+
+                                                      )
+
+                                          )
+                       )
+                                       )
+    except:
+        ennuste_plot = prediction_result.loc[year,:]
+        return dcc.Graph(figure = go.Figure(data=[
+                                go.Scatter(x = ennuste_plot.Ikä,
+                                          y = np.ceil(ennuste_plot.Väestö),
+                                          name = 'Ennuste',
+                                          mode = 'markers',
+                                          line = dict(color='red'))
+#             ,
+#                                 go.Scatter(x = tk_plot.Ikä,
+#                                           y = tk_plot['Tilastokeskuksen ennuste'],
+#                                           name = 'Tilastokeskuksen ennuste',
+#                                           line = dict(color='blue'))
+        ],
+                                layout = go.Layout(xaxis = dict(title = 'Ikä'),
+                                          yaxis= dict(title = 'Väestö', 
+                                                                  tickformat = ' '),
+                                          title = dict(xref='paper', 
+                                                       yref='paper', 
+
+                                                       xanchor='left', 
+                                                       yanchor='bottom',
+                                                       text=city.strip().capitalize()+': väestöennuste iän mukaan vuodelle '+str(year),
+                                                       font=dict(family='Arial',
+                                                                 size=30,
+                                                                 color='black'
+                                                                ),
+
+
+
+                                                      )
+
+                                          )
+                       )
+                                       )
+    
+    
+                    
 
     
 app.layout= serve_layout
