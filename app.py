@@ -1395,7 +1395,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         html.Br(),
         html.P(quick_chain, style = dict(textAlign='center', color = 'purple', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.P(tk_chain, style = dict(textAlign='center', color = 'blue', fontWeight='bold', fontFamily='Arial',fontSize=16)),
-        html.P('Alla koneoppimismallin ja Tilastokeskuksen ennusteen vertailua iän mukaan vuodelle '+str(alkuvuosi)+'.', style = dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=16)),
+        html.P('Alla koneoppimismallin ja Tilastokeskuksen ennusteen vertailua iän mukaan vuodelle '+str(min(ennuste_leikkaus))+'.', style = dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.Br(),
         dcc.Graph(figure = go.Figure(
                             data =[
