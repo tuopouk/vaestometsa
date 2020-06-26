@@ -1413,50 +1413,50 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         html.Br(),
         html.P(quick_chain, style = dict(textAlign='center', color = 'purple', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.P(tk_chain, style = dict(textAlign='center', color = 'blue', fontWeight='bold', fontFamily='Arial',fontSize=16)),
-        html.P('Alla koneoppimismallin ja Tilastokeskuksen ennusteen vertailua iän mukaan vuodelle '+str(vika_vuosi)+'.', style = dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=16)),
+        #html.P('Alla koneoppimismallin ja Tilastokeskuksen ennusteen vertailua iän mukaan vuodelle '+str(vika_vuosi)+'.', style = dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.Br(),
-        dcc.Graph(figure = go.Figure(
-                            data =[
-                                go.Scatter(
-                                   x = age_test.ikä,
-                                   y = np.ceil(age_test.ennusta),
-                                   name = 'Ennuste',
-                                    mode='markers',
-                                   line = dict(color = 'red')
-                                ),
-                                go.Scatter(
-                                   x = age_true.ikä,
-                                   y = age_true.ennusta,
-                                    mode='markers',
-                                   name = 'Toteutunut',
-                                   line = dict(color = 'green')
-                                ),
-                                go.Scatter(
-                                   x = tk_latest_age.Ikä,
-                                   y = tk_latest_age['Tilastokeskuksen ennuste'],
-                                   name = 'Tilastokeskuksen ennuste',
-                                    mode='markers',
-                                   line = dict(color = 'blue')
-                                )
-                            ],
-                    layout= go.Layout(
-                                    xaxis = dict(title = 'Ikä'),
-                                    yaxis= dict(title = 'Väestö',
-                                                tickformat = ' '
-                                               ),
-                                    title = dict(xref='paper', 
-                                                 yref='paper', 
-                                                 xanchor='left', 
-                                                 yanchor='bottom',
-                                                 text=city.strip().capitalize()+': väestöennustetesti iän mukaan vuodelle '+str(vika_vuosi),
-                                                 font=dict(family='Arial',
-                                                                 size=30,
-                                                                 color='black'
-                                                                )
-                                 )
-                 )
-        )
-                 ),
+#         dcc.Graph(figure = go.Figure(
+#                             data =[
+#                                 go.Scatter(
+#                                    x = age_test.ikä,
+#                                    y = np.ceil(age_test.ennusta),
+#                                    name = 'Ennuste',
+#                                     mode='markers',
+#                                    line = dict(color = 'red')
+#                                 ),
+#                                 go.Scatter(
+#                                    x = age_true.ikä,
+#                                    y = age_true.ennusta,
+#                                     mode='markers',
+#                                    name = 'Toteutunut',
+#                                    line = dict(color = 'green')
+#                                 ),
+#                                 go.Scatter(
+#                                    x = tk_latest_age.Ikä,
+#                                    y = tk_latest_age['Tilastokeskuksen ennuste'],
+#                                    name = 'Tilastokeskuksen ennuste',
+#                                     mode='markers',
+#                                    line = dict(color = 'blue')
+#                                 )
+#                             ],
+#                     layout= go.Layout(
+#                                     xaxis = dict(title = 'Ikä'),
+#                                     yaxis= dict(title = 'Väestö',
+#                                                 tickformat = ' '
+#                                                ),
+#                                     title = dict(xref='paper', 
+#                                                  yref='paper', 
+#                                                  xanchor='left', 
+#                                                  yanchor='bottom',
+#                                                  text=city.strip().capitalize()+': väestöennustetesti iän mukaan vuodelle '+str(vika_vuosi),
+#                                                  font=dict(family='Arial',
+#                                                                  size=30,
+#                                                                  color='black'
+#                                                                 )
+#                                  )
+#                  )
+#         )
+#                  ),
         dcc.Graph(figure = go.Figure(
             data=[
 
@@ -1516,30 +1516,19 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
            
            
-           html.H2(city+':', style= dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=30)),
-           html.Div(id = 'year_selection_indicator',
-                     style= dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=30)
-                    ),
-            html.Div(id='ikägraafi'),
+#            html.H2(city+':', style= dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=30)),
+#            html.Div(id = 'year_selection_indicator',
+#                      style= dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=30)
+#                     ),
+#             html.Div(id='ikägraafi'),
             
-            #Jos laittaa Sliderin, ei toimi Herokussa ????
-            
-            
-#            dcc.Slider(id ='vuosivalitsin',
-#                       min = alkuvuosi,
-#                       max = alkuvuosi+ennusteen_pituus,
-#                       value = alkuvuosi,
-#                       marks = {alkuvuosi:str(alkuvuosi),
-#                                tk_max: str(tk_max)+' (Tilastokeskuksen ennuste päättyy.)',
-#                               alkuvuosi+ennusteen_pituus:str(alkuvuosi+ennusteen_pituus)},
-#                       updatemode='drag'
+
+#           html.H2('Valitse ennustevuosi, jota tarkastella iän mukaan.'),
+#           dcc.Dropdown(id ='vuosivalitsin',
+#                      multi=False,
+#                      options = [{'label':s, 'value': s} for s in range(alkuvuosi,alkuvuosi+ennusteen_pituus+1)],
+#                      value=alkuvuosi
 #                      ),
-          html.H2('Valitse ennustevuosi, jota tarkastella iän mukaan.'),
-          dcc.Dropdown(id ='vuosivalitsin',
-                     multi=False,
-                     options = [{'label':s, 'value': s} for s in range(alkuvuosi,alkuvuosi+ennusteen_pituus+1)],
-                     value=alkuvuosi
-                     ),
 
             html.Br(),
                     html.A(
@@ -1557,91 +1546,91 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
 
     
-@app.callback(
-    Output('ikägraafi','children'),
+# @app.callback(
+#     Output('ikägraafi','children'),
     
-    [
+#     [
 
-   Input('vuosivalitsin', 'value')
-   #Input('kunnat','value')
-    ]
-)
-def update_age_graph(year):
+#    Input('vuosivalitsin', 'value')
+#    #Input('kunnat','value')
+#     ]
+# )
+# def update_age_graph(year):
     
     
     
-    if True:
+
     
-        try:
+#     try:
             
-            tk_plot = tk_result.loc[year,:]
-            ennuste_plot = prediction_result.loc[year,:]
-            return dcc.Graph(figure = go.Figure(data=[
-                                    go.Scatter(x = ennuste_plot.Ikä,
-                                              y = np.ceil(ennuste_plot.Väestö),
-                                              name = 'Ennuste',
-                                               mode = 'markers',
-                                              line = dict(color='red')),
-                                    go.Scatter(x = tk_plot.Ikä,
-                                              y = tk_plot['Tilastokeskuksen ennuste'],
-                                              name = 'Tilastokeskuksen ennuste',
-                                               mode = 'markers',
-                                              line = dict(color='blue'))],
-                                    layout = go.Layout(showlegend=True, xaxis = dict(title = 'Ikä'),
-                                              yaxis= dict(title = 'Väestö', 
-                                                                      tickformat = ' '),
-                                              title = dict(xref='paper', 
-                                                           yref='paper', 
+#         tk_plot = tk_result.loc[year,:]
+#         ennuste_plot = prediction_result.loc[year,:]
+#         return dcc.Graph(figure = go.Figure(data=[
+#                                     go.Scatter(x = ennuste_plot.Ikä,
+#                                               y = np.ceil(ennuste_plot.Väestö),
+#                                               name = 'Ennuste',
+#                                                mode = 'markers',
+#                                               line = dict(color='red')),
+#                                     go.Scatter(x = tk_plot.Ikä,
+#                                               y = tk_plot['Tilastokeskuksen ennuste'],
+#                                               name = 'Tilastokeskuksen ennuste',
+#                                                mode = 'markers',
+#                                               line = dict(color='blue'))],
+#                                     layout = go.Layout(showlegend=True, xaxis = dict(title = 'Ikä'),
+#                                               yaxis= dict(title = 'Väestö', 
+#                                                                       tickformat = ' '),
+#                                               title = dict(xref='paper', 
+#                                                            yref='paper', 
 
-                                                           xanchor='left', 
-                                                           yanchor='bottom',
-                                                           text=' 0 - 100 -vuotiaat',
-                                                           font=dict(family='Arial',
-                                                                     size=30,
-                                                                     color='black'
-                                                                    )
+#                                                            xanchor='left', 
+#                                                            yanchor='bottom',
+#                                                            text=' 0 - 100 -vuotiaat',
+#                                                            font=dict(family='Arial',
+#                                                                      size=30,
+#                                                                      color='black'
+#                                                                     )
 
 
 
-                                                          )
+#                                                           )
 
-                                              )
-                           )
-                                           )
-        except:
-            ennuste_plot = prediction_result.loc[year,:]
+#                                               )
+#                            )
+#                                            )
+#     except:
+#         ennuste_plot = prediction_result.loc[year,:]
            
-            return dcc.Graph(figure = go.Figure(data=[
-                                    go.Scatter(x = ennuste_plot.Ikä,
-                                              y = np.ceil(ennuste_plot.Väestö),
-                                              name = 'Ennuste',
-                                              mode = 'markers',
-                                              line = dict(color='red'))
+#         return dcc.Graph(figure = go.Figure(data=[
+#                                     go.Scatter(x = ennuste_plot.Ikä,
+#                                               y = np.ceil(ennuste_plot.Väestö),
+#                                               name = 'Ennuste',
+#                                               mode = 'markers',
+#                                               line = dict(color='red'))
 
-                                            ],
-                                    layout = go.Layout(showlegend=True,
-                                                       xaxis = dict(title = 'Ikä'),
+#                                             ],
+#                                     layout = go.Layout(showlegend=True,
+#                                                        xaxis = dict(title = 'Ikä'),
 
-                                              yaxis= dict(title = 'Väestö', 
-                                                                      tickformat = ' '),
-                                              title = dict(xref='paper', 
-                                                           yref='paper', 
+#                                               yaxis= dict(title = 'Väestö', 
+#                                                                       tickformat = ' '),
+#                                               title = dict(xref='paper', 
+#                                                            yref='paper', 
 
-                                                           xanchor='left', 
-                                                           yanchor='bottom',
-                                                           text=' 0 - 100 -vuotiaat',
-                                                           font=dict(family='Arial',
-                                                                     size=30,
-                                                                     color='black'
-                                                                    )
+#                                                            xanchor='left', 
+#                                                            yanchor='bottom',
+#                                                            text=' 0 - 100 -vuotiaat',
+#                                                            font=dict(family='Arial',
+#                                                                      size=30,
+#                                                                      color='black'
+#                                                                     )
 
 
 
-                                                          )
+#                                                           )
 
-                                              )
-                           )
-                                           )
+#                                               )
+#                            )
+#                                            )
 
     
                     
