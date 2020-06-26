@@ -172,16 +172,14 @@ def serve_layout():
                                                 html.H2('Valitse ennusteen pituus.'),
                                                 dcc.Slider(id='pituus',
                                                            min=1,
-                                                           max=100,
+                                                           max=50,
                                                            step=1,
                                                            value=10,
                                                            marks = {
                                                            1: '1 vuosi',
                                                            20: '20 vuotta',
                                                            
-                                                           50: '50 vuotta',
-                                                           
-                                                           100: '100 vuotta'},
+                                                           50: '50 vuotta'},
                                                            updatemode='drag'
                                                           ),
                                                 html.Br(),
@@ -192,13 +190,13 @@ def serve_layout():
                                                 html.H2('Valitse puiden määrä metsässä.'),
                                                 dcc.Slider(id='puut',
                                                            min = 100,
-                                                           max = 3000,
+                                                           max = 1000,
                                                            step=1,
                                                            value=100,
                                                            marks = {
                                                            100: '100 puuta',
-                                                           1000: '1000 puuta',
-                                                           3000: '3000 puuta'
+                                                           500: '500 puuta',
+                                                           1000: '1000 puuta'
                                                            },
                                                            updatemode='drag'
                                                           ),
@@ -1178,54 +1176,54 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         n_20.ennusta = np.maximum(0,n_20.lähtö + n_20.muutos)
         n = pd.concat([n,n_20],axis=0)
 
+        if ennusteen_pituus > 1:
+            for year in tqdm(range(alkuvuosi+1, alkuvuosi + 1 + ennusteen_pituus)):#last_year+1)):
 
-        for year in tqdm(range(alkuvuosi+1, alkuvuosi + 1 + ennusteen_pituus)):#last_year+1)):
-
-            hed_df = v[(v.vuosi == year -1) & (v.ikä.isin(np.arange(hed_min,hed_max+1)))].groupby('vuosi').agg({'ennusta':'sum'}).rename(columns={'ennusta':'hed'}).reset_index().copy()
-
-
-            nolla_df = n[(n.vuosi==year-1)].copy()
-
-            ykköset = nolla_df.copy()
-
-            ykköset.lähtö = ykköset.ennusta
-            ykköset.vuosi+=1
-            ykköset.ikä+=1
-            ykköset = ykköset[['vuosi',
-
-                               'ikä','lähtö']]
+                hed_df = v[(v.vuosi == year -1) & (v.ikä.isin(np.arange(hed_min,hed_max+1)))].groupby('vuosi').agg({'ennusta':'sum'}).rename(columns={'ennusta':'hed'}).reset_index().copy()
 
 
-            nolla_df.lähtö = nolla_df.ennusta
-            nolla_df.vuosi+=1
+                nolla_df = n[(n.vuosi==year-1)].copy()
+
+                ykköset = nolla_df.copy()
+
+                ykköset.lähtö = ykköset.ennusta
+                ykköset.vuosi+=1
+                ykköset.ikä+=1
+                ykköset = ykköset[['vuosi',
+
+                                   'ikä','lähtö']]
 
 
-            nolla_df['hed']=hed_df['hed'].values
+                nolla_df.lähtö = nolla_df.ennusta
+                nolla_df.vuosi+=1
 
 
-            loput = v[(v.vuosi==year-1)&(v.ikä<100)]
-            loput.ikä+=1
-            loput.vuosi+=1
-            loput.lähtö=loput.ennusta
-            loput.drop(['ennusta','kohorttimuutos'],axis=1, inplace=True)
-
-            loput = pd.concat([ykköset,loput],axis=0)
-
-           
+                nolla_df['hed']=hed_df['hed'].values
 
 
-            
-            nolla_df['muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-            nolla_df['ennusta'] = np.maximum(0, nolla_df.lähtö + nolla_df.muutos)
+                loput = v[(v.vuosi==year-1)&(v.ikä<100)]
+                loput.ikä+=1
+                loput.vuosi+=1
+                loput.lähtö=loput.ennusta
+                loput.drop(['ennusta','kohorttimuutos'],axis=1, inplace=True)
 
-            n = pd.concat([n,nolla_df], axis = 0)
+                loput = pd.concat([ykköset,loput],axis=0)
 
 
 
-            loput['kohorttimuutos'] = ridge.predict(scl.transform(loput[norm_selittäjät]))
-            loput['ennusta'] = np.maximum(0,loput.lähtö + loput.kohorttimuutos)
 
-            v = pd.concat([v,loput],axis = 0)
+
+                nolla_df['muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+                nolla_df['ennusta'] = np.maximum(0, nolla_df.lähtö + nolla_df.muutos)
+
+                n = pd.concat([n,nolla_df], axis = 0)
+
+
+
+                loput['kohorttimuutos'] = ridge.predict(scl.transform(loput[norm_selittäjät]))
+                loput['ennusta'] = np.maximum(0,loput.lähtö + loput.kohorttimuutos)
+
+                v = pd.concat([v,loput],axis = 0)
 
 
         result = pd.concat([n[['vuosi',
@@ -1299,7 +1297,15 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         
         
         tk_plot = tk_data_df.reset_index().groupby('Vuosi').agg({'Tilastokeskuksen ennuste':'sum'}).sort_index()
-        tk_plot = tk_plot.loc[:alkuvuosi+ennusteen_pituus]
+        
+        if ennusteen_pituus > 1:
+            
+            tk_plot = tk_plot.loc[:alkuvuosi+ennusteen_pituus]
+            title = city.strip().capitalize()+': väestöennuste '+str(alkuvuosi)+' - '+str(result.vuosi.max())
+        else:
+            
+            tk_plot = tk_plot.loc[:alkuvuosi+ennusteen_pituus-1]
+            title = city.strip().capitalize()+': väestöennuste '+str(alkuvuosi)
         
         tk_result = tk_data_df
         prediction_result = df
@@ -1317,6 +1323,8 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         test_plot = test_result.groupby('vuosi').ennusta.sum()
         test_tot_plot = test_toteutunut.groupby('vuosi').ennusta.sum()
         tk_test_plot = tk_plot.loc[tk_min:test_toteutunut.vuosi.max()]
+
+            
 
         return html.Div(children = [
 
@@ -1498,7 +1506,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
 
                                                        xanchor='left', 
                                                        yanchor='bottom',
-                                                       text=city.strip().capitalize()+': väestöennuste '+str(alkuvuosi)+' - '+str(result.vuosi.max()),
+                                                       text=title,
                                                        font=dict(family='Arial',
                                                                  size=30,
                                                                  color='black'
