@@ -1579,7 +1579,7 @@ def update_age_graph(year,city):
                                           name = 'Tilastokeskuksen ennuste',
                                            mode = 'markers',
                                           line = dict(color='blue'))],
-                                layout = go.Layout(xaxis = dict(title = 'Ikä'),
+                                layout = go.Layout(showlegend=True, xaxis = dict(title = 'Ikä'),
                                           yaxis= dict(title = 'Väestö', 
                                                                   tickformat = ' '),
                                           title = dict(xref='paper', 
@@ -1610,7 +1610,9 @@ def update_age_graph(year,city):
                                           line = dict(color='red'))
 
                                         ],
-                                layout = go.Layout(xaxis = dict(title = 'Ikä'),
+                                layout = go.Layout(showlegend=True,
+                                                   xaxis = dict(title = 'Ikä'),
+                                                   
                                           yaxis= dict(title = 'Väestö', 
                                                                   tickformat = ' '),
                                           title = dict(xref='paper', 
