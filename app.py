@@ -68,6 +68,7 @@ test_size = .3
 alkuvuosi = max(vuodet) + 1
 testivuodet = int(math.ceil((max(vuodet) - aloita)*test_size))
 testi_alkuvuosi = max(vuodet)-testivuodet
+tk_max=2020
 
 hed_min = 18
 hed_max = 39
@@ -354,7 +355,7 @@ def update_year(value):
     [Input('vuosivalitsin', 'value')])
 def update_vuosivalitsin(value):
     
-    return 'Valittu vuosi: {} '.format(
+    return 'Väestöennuste iän mukaan vuodelle {} '.format(
         str(value)
     )  
 
@@ -366,6 +367,9 @@ def update_test(value):
     return 'Valittu testikoko: {} '.format(
         str(value)+' %'
     )  
+
+
+
 
 def apply_uncertainty(year, first_predicted):
     
@@ -432,7 +436,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                 city_code = cities.loc[city.strip().capitalize()].aluekoodi
                 not_found = False
             except: 
-                city = input("Ei löytynyt, tarkista oikeikirjoitus. ")
+                "Ei löytynyt."
 
 
         payload = {
@@ -1074,8 +1078,8 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             qtt = quick_test_toteutunut[quick_test_toteutunut.vuosi.isin(ennuste_leikkaus)]
             
             
-            age_test = qtr[qtr.vuosi==min(ennuste_leikkaus)]
-            age_true = qtt[qtt.vuosi==min(ennuste_leikkaus)]
+            age_test = qtr[qtr.vuosi==vika_vuosi]
+            age_true = qtt[qtt.vuosi==vika_vuosi]
             
             
             quick_mae = mean_absolute_error(qtt.ennusta, qtr.ennusta)
@@ -1298,7 +1302,16 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         tk_min = tk_plot.index.min()
         tk_max = tk_plot.index.max()
         
-        tk_latest_age = tk_data_df.loc[min(ennuste_leikkaus),:]
+        tk_latest_age = tk_data_df.loc[vika_vuosi,:]
+        
+        tot_plot = res_group.loc[res_group.index <=alkuvuosi-1]
+        enn_plot = res_group.loc[res_group.index.isin(range(alkuvuosi,alkuvuosi+11))]
+        uncertain_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+11,alkuvuosi+21))]
+        very_uncertain_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+21,res_group.index.max()+1))]
+        
+        test_plot = test_result.groupby('vuosi').ennusta.sum()
+        test_tot_plot = test_toteutunut.groupby('vuosi').ennusta.sum()
+        tk_test_plot = tk_plot.loc[tk_min:test_toteutunut.vuosi.max()]
 
         return html.Div(children = [
 
@@ -1306,21 +1319,21 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                 data=[
 
 
-                            go.Scatter(x = test_result.groupby('vuosi').ennusta.sum().index,
-                                        y = np.ceil(test_result.groupby('vuosi').ennusta.sum().values),
+                            go.Scatter(x = test_plot.index,
+                                        y = np.ceil(test_plot.values),
                                          name = 'Ennuste',
                                        line = dict(color='red')
                                         ),
 
 
 
-                            go.Scatter(x = test_toteutunut.groupby('vuosi').ennusta.sum().index,
-                                        y = test_toteutunut.groupby('vuosi').ennusta.sum().values,
+                            go.Scatter(x = test_tot_plot.index,
+                                        y = test_tot_plot.values,
                                          name = 'Toteutunut',
                                          line = dict(color='green')
                                         ),
-                            go.Scatter(x = tk_plot.loc[tk_min:test_toteutunut.vuosi.max()].index,
-                                       y = tk_plot.loc[tk_min:test_toteutunut.vuosi.max()]['Tilastokeskuksen ennuste'],
+                            go.Scatter(x = tk_test_plot.index,
+                                       y = tk_test_plot['Tilastokeskuksen ennuste'],
                                        name = 'Tilastokeskuksen ennuste',
                                        line = dict(color = 'blue')
                                       )
@@ -1395,7 +1408,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         html.Br(),
         html.P(quick_chain, style = dict(textAlign='center', color = 'purple', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.P(tk_chain, style = dict(textAlign='center', color = 'blue', fontWeight='bold', fontFamily='Arial',fontSize=16)),
-        html.P('Alla koneoppimismallin ja Tilastokeskuksen ennusteen vertailua iän mukaan vuodelle '+str(min(ennuste_leikkaus))+'.', style = dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=16)),
+        html.P('Alla koneoppimismallin ja Tilastokeskuksen ennusteen vertailua iän mukaan vuodelle '+str(vika_vuosi)+'.', style = dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.Br(),
         dcc.Graph(figure = go.Figure(
                             data =[
@@ -1424,12 +1437,13 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                     layout= go.Layout(
                                     xaxis = dict(title = 'Ikä'),
                                     yaxis= dict(title = 'Väestö',
-                                                tickformat = ' '),
+                                                tickformat = ' '
+                                               ),
                                     title = dict(xref='paper', 
                                                  yref='paper', 
                                                  xanchor='left', 
                                                  yanchor='bottom',
-                                                 text=city.strip().capitalize()+': väestöennustetesti iän mukaan vuodelle '+str(min(ennuste_leikkaus)),
+                                                 text=city.strip().capitalize()+': väestöennustetesti iän mukaan vuodelle '+str(vika_vuosi),
                                                  font=dict(family='Arial',
                                                                  size=30,
                                                                  color='black'
@@ -1441,25 +1455,25 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         dcc.Graph(figure = go.Figure(
             data=[
 
-                            go.Scatter(x = res_group.loc[res_group.index <=alkuvuosi-1].index,
-                                       y = res_group.loc[res_group.index <=alkuvuosi-1].ennusta,
+                            go.Scatter(x = tot_plot.index,
+                                       y = tot_plot.ennusta,
                                        name = 'Toteutunut',
                                        line = dict(color='green')
                                       ),
-                            go.Scatter(x = res_group.loc[res_group.index.isin(range(alkuvuosi,alkuvuosi+11))].index,
-                                       y = res_group.loc[res_group.index.isin(range(alkuvuosi,alkuvuosi+11))].ennusta,
+                            go.Scatter(x = enn_plot.index,
+                                       y = enn_plot.ennusta,
                                        name = 'Ennuste',
                                        line = dict(color='orange')
 
                                         ),
-                            go.Scatter(x = res_group.loc[res_group.index.isin(range(alkuvuosi+11,alkuvuosi+21))].index,
-                                       y = res_group.loc[res_group.index.isin(range(alkuvuosi+11,alkuvuosi+21))].ennusta,
+                            go.Scatter(x = uncertain_plot.index,
+                                       y = uncertain_plot.ennusta,
                                        name = 'Epävarma ennuste',
                                        line = dict(color='purple')
 
                                         ),
-                            go.Scatter(x = res_group.loc[res_group.index.isin(range(alkuvuosi+21,res_group.index.max()+1))].index,
-                                       y = res_group.loc[res_group.index.isin(range(alkuvuosi+21,res_group.index.max()+1))].ennusta,
+                            go.Scatter(x = very_uncertain_plot.index,
+                                       y = very_uncertain_plot.ennusta,
                                        name = 'Erittäin epävarma ennuste',
                                        line = dict(color='red')
 
@@ -1471,8 +1485,9 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                                       )
                              ],
                        layout = go.Layout(xaxis = dict(title = 'Vuodet'),
-                                          yaxis= dict(title = 'Väestö', 
-                                                                  tickformat = ' '),
+                                          yaxis= dict(title = 'Väestö',
+                                                      tickformat = ' '
+                                                     ),
                                           title = dict(xref='paper', 
                                                        yref='paper', 
 
@@ -1482,7 +1497,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
                                                        font=dict(family='Arial',
                                                                  size=30,
                                                                  color='black'
-                                                                ),
+                                                                )
 
 
 
@@ -1494,18 +1509,33 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             
 
 
-
-           html.Div(id='ikägraafi'),
-           html.H2('Valitse ennustevuosi, jota tarkastella iän mukaan.'),
-           dcc.Slider(id ='vuosivalitsin',
-                      min = alkuvuosi,
-                      max = alkuvuosi+ennusteen_pituus,
-                      value = alkuvuosi,
-                      marks = {alkuvuosi:str(alkuvuosi),
-                               tk_max: str(tk_max)+' (Tilastokeskuksen ennuste päättyy.)',
-                              alkuvuosi+ennusteen_pituus:str(alkuvuosi+ennusteen_pituus)}
+           
+           
+           
+           html.Div(id = 'year_selection_indicator',
+                     style= dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=30)
+                    ),
+            html.Div(id='ikägraafi'),
+            
+            #Jos laittaa Sliderin, ei toimi Herokussa ????
+            
+            
+#            dcc.Slider(id ='vuosivalitsin',
+#                       min = alkuvuosi,
+#                       max = alkuvuosi+ennusteen_pituus,
+#                       value = alkuvuosi,
+#                       marks = {alkuvuosi:str(alkuvuosi),
+#                                tk_max: str(tk_max)+' (Tilastokeskuksen ennuste päättyy.)',
+#                               alkuvuosi+ennusteen_pituus:str(alkuvuosi+ennusteen_pituus)},
+#                       updatemode='drag'
+#                      ),
+          html.H2('Valitse ennustevuosi, jota tarkastella iän mukaan.'),
+          dcc.Dropdown(id ='vuosivalitsin',
+                     multi=False,
+                     options = [{'label':s, 'value': s} for s in range(alkuvuosi,alkuvuosi+ennusteen_pituus+1)],
+                     value=alkuvuosi
                      ),
-            html.Div(id = 'year_selection_indicator', style={'margin-top': 20}),
+
             html.Br(),
                     html.A(
                         'Lataa yksityiskohtainen Excel-taulukko. ',
@@ -1519,17 +1549,20 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
         ])
 
 
-    
+
+
     
 @app.callback(
     Output('ikägraafi','children'),
+    
     [
 
-    Input('vuosivalitsin', 'value'),
+   Input('vuosivalitsin', 'value'),
     Input('kunnat','value')
     ]
 )
 def update_age_graph(year,city):
+    
     
     
     try:
@@ -1554,11 +1587,11 @@ def update_age_graph(year,city):
 
                                                        xanchor='left', 
                                                        yanchor='bottom',
-                                                       text=city.strip().capitalize()+': väestöennuste iän mukaan vuodelle '+str(year),
+                                                       text=city.strip().capitalize()+' 0 - 100 -vuotiaat',
                                                        font=dict(family='Arial',
                                                                  size=30,
                                                                  color='black'
-                                                                ),
+                                                                )
 
 
 
@@ -1575,12 +1608,8 @@ def update_age_graph(year,city):
                                           name = 'Ennuste',
                                           mode = 'markers',
                                           line = dict(color='red'))
-#             ,
-#                                 go.Scatter(x = tk_plot.Ikä,
-#                                           y = tk_plot['Tilastokeskuksen ennuste'],
-#                                           name = 'Tilastokeskuksen ennuste',
-#                                           line = dict(color='blue'))
-        ],
+
+                                        ],
                                 layout = go.Layout(xaxis = dict(title = 'Ikä'),
                                           yaxis= dict(title = 'Väestö', 
                                                                   tickformat = ' '),
@@ -1589,11 +1618,11 @@ def update_age_graph(year,city):
 
                                                        xanchor='left', 
                                                        yanchor='bottom',
-                                                       text=city.strip().capitalize()+': väestöennuste iän mukaan vuodelle '+str(year),
+                                                       text=city.strip().capitalize()+' 0 - 100 -vuotiaat',
                                                        font=dict(family='Arial',
                                                                  size=30,
                                                                  color='black'
-                                                                ),
+                                                                )
 
 
 
