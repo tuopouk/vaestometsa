@@ -232,12 +232,12 @@ def serve_layout():
                                             
                                                  html.H2('Valitse opetuksen aloitusvuosi.'),
                                                  dcc.Slider(id='alkuvuosi',
-                                                           min=min(vuodet),
+                                                           min=max(vuodet)-30,
                                                            max=max(vuodet)-2,
                                                            step=1,
                                                            value=2010,
                                                            marks = {
-                                                           min(vuodet): str(min(vuodet)),
+                                                           max(vuodet)-30: str(max(vuodet)-30),
 
                                                            max(vuodet)-2: str(max(vuodet)-2)
                                                            },
@@ -253,14 +253,13 @@ def serve_layout():
                                                  html.H2('Valitse testikoko.'),
                                                  dcc.Slider(id='testikoko',
                                                            min=10,
-                                                           max=50,
+                                                           max=30,
                                                            step=1,
                                                            value=20,
                                                            marks = {
                                                            10: '10 %',
                                                            20: '20 %',
-                                                           30: '30 %',
-                                                           50: '50 %'},
+                                                           30: '30 %'},
                                                            updatemode='drag'
                                                           ),
                                                  html.Br(),
