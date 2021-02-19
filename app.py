@@ -36,7 +36,7 @@ spinner_type='graph'
 number_genetive = {1:'yhden',2:'kahden',3:'kolmen'}
 number_to = {1:'yhdelle',2:'kahdelle',3:'kolmelle'}
 
-url = 'http://pxnet2.stat.fi/PXWeb/api/v1/fi/StatFin/vrm/vaerak/statfin_vaerak_pxt_11re.px'
+url = 'https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin/vrm/vaerak/statfin_vaerak_pxt_11re.px'
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
                                 'Content-Type':'application/json'
                                }
@@ -52,7 +52,7 @@ vuosi_options = [{'label':s, 'value': s} for s in sorted(list(vuodet))]
 city_options = [{'label':s, 'value': s} for s in sorted(list(cities.index))]
 
 
-ennuste_url = "http://pxnet2.stat.fi/PXWeb/api/v1/fi/StatFin/vrm/vaenn/statfin_vaenn_pxt_128v.px"
+ennuste_url = "https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin/vrm/vaenn/statfin_vaenn_pxt_128v.px"
 tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables'][1]['valueTexts']]
 
 
@@ -286,10 +286,10 @@ def serve_layout():
                     dcc.Loading(id='spinner',fullscreen=False, type=spinner_type, children=[html.Div(id='ennuste')]),
 
                     html.Label(['Datan lähde: ', 
-                                html.A('StatFin', href='http://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaerak/statfin_vaerak_pxt_11re.px/')
+                                html.A('StatFin', href = "https://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaerak/statfin_vaerak_pxt_11re.px/")
                                ]),
                     html.Label(['Tilastokeskuksen väestöennuste: ',
-                               html.A('StatFin', href = 'http://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaenn/statfin_vaenn_pxt_128v.px/')
+                               html.A('StatFin', href = "https://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaenn/statfin_vaenn_pxt_128v.px/")
                                ]),
                     html.Label(['Satunnaismetsä Wikipediassa: ', 
                                 html.A('Wikipedia', href='https://en.wikipedia.org/wiki/Random_forest')
