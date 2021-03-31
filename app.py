@@ -446,7 +446,7 @@ def test_predict_document(n_clicks,pituus, puut, alku, testikoko, hed, kunta):
             {
               "code": "Alue",
               "selection": {
-                "filter": "agg:_Kunnat aakkosjärjestyksessä 2020.agg",
+                "filter": "item",
                 "values": [
                   city_code
                 ]
