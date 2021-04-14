@@ -1,6 +1,8 @@
 # vaestometsa
 Väestön ennustaminen RandomForest-algoritmilla.
 
+Sovellus löytyy osoitteesta http://vaestometsa.herokuapp.com/.
+
 Ohjelmalla voi ennustaa väestön haluamalleensa kaupungille itse koostetulla satunnaismetsällä.
 
 Datana käytetään Tilastokeskuksen avoimen REST API rajapinnan kautta saatavaa väestödataa kunnittain 1-vuotisiän mukaan. 
