@@ -15,3 +15,7 @@ Visualisoinnit on tuotettu Dash- ja plotly -kirjastoilla. Koneoppimisessa ja dat
 
 Katso täältä ohjeet, Dash-aplikaatioiden julkaisemiseen Herokussa:
 https://dash.plotly.com/deployment
+
+# Sovellus voitti Datamenestyjät 2021-kilpailun.
+Katso alkuperäinen uutinen täältä:
+https://www.stat.fi/uutinen/vaestometsa-palvelu-voitti-ensimmaisen-datamenestyjat-kilpailun
