@@ -1,4 +1,4 @@
-# vaestometsa
+# Väestömetsä
 Väestön ennustaminen RandomForest-algoritmilla.
 
 Sovellus löytyy osoitteesta http://vaestometsa.herokuapp.com/.
