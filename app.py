@@ -64,28 +64,7 @@ tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables
 
 
 ennuste_leikkaus = [c for c in vanha_tk_ennustevuodet if c in tk_ennustevuodet]
-# toteutuneet_ennusteet = len(ennuste_leikkaus)
-# try:
-#     vika_vuosi = min(ennuste_leikkaus)
-# except:
-#     # Toteumatietoja ei ole ennustetuilta vuosilta
-#     vika_vuosi = None
 
-#last_year = 2070
-# ennusteen_pituus = 30
-# aloita = 2010
-
-# test_size = .3
-
-# alkuvuosi = max(vuodet) + 1
-# testivuodet = int(math.ceil((max(vuodet) - aloita)*test_size))
-# testi_alkuvuosi = max(vuodet)-testivuodet
-# tk_max=2020
-
-# hed_min = 18
-# hed_max = 39
-
-# trees = 100
 max_depth = None
 
 norm_selittäjät = ['Ikä',
@@ -95,28 +74,7 @@ nolla_selittäjät = ['Lähtö',
                     'Hed'
                    ]
 
-# svr=SVR(C=100, cache_size=200, coef0=0.0, degree=3, epsilon=0.1,
-#     gamma='auto_deprecated', kernel='linear', max_iter=-1, shrinking=True,
-#     tol=0.0890919191919192, verbose=False)
 
-# svr = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=max_depth,
-#                       max_features='auto', max_leaf_nodes=None,
-#                       min_impurity_decrease=0.0, min_impurity_split=None,
-#                       min_samples_leaf=2, min_samples_split=30,
-#                       min_weight_fraction_leaf=0.0, n_estimators=trees,
-#                       n_jobs=-1, oob_score=True, random_state=9876, verbose=0,
-#                       warm_start=False)
-
-
-# ridge=RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=max_depth,
-#                       max_features='auto', max_leaf_nodes=None,
-#                       min_impurity_decrease=0.0, min_impurity_split=None,
-#                       min_samples_leaf=2, min_samples_split=30,
-#                       min_weight_fraction_leaf=0.0, n_estimators=trees,
-#                       n_jobs=-1, oob_score=True, random_state=9876, verbose=0,
-#                       warm_start=False)
-# tk_result = None
-# prediction_result = None
 
 server = Flask(__name__)
 server.secret_key = os.environ.get('secret_key','secret')
