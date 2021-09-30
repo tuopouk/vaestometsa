@@ -78,7 +78,7 @@ nolla_selittäjät = ['Lähtö',
 
 server = Flask(__name__)
 server.secret_key = os.environ.get('secret_key','secret')
-app = dash.Dash(name = __name__, server = server, prevent_initial_callbacks=True)
+app = dash.Dash(name = __name__, server = server)
 
 
 
@@ -1499,11 +1499,11 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         if ennusteen_pituus > 1:
             
             tk_plot = tk_plot.loc[:alkuvuosi+ennusteen_pituus]
-            title = city.strip().capitalize()+': väestöennuste '+str(alkuvuosi)+' - '+str(result.Vuosi.max())
+            title = city.strip().capitalize()+': väestöennuste '+str(alkuvuosi+1)+' - '+str(result.Vuosi.max())
         else:
             
             tk_plot = tk_plot.loc[:alkuvuosi+ennusteen_pituus-1]
-            title = city.strip().capitalize()+': väestöennuste '+str(alkuvuosi)
+            title = city.strip().capitalize()+': väestöennuste '+str(alkuvuosi+1)
         
         tk_result = tk_forecast
         prediction_result = df
@@ -1513,8 +1513,8 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         
         tk_latest_age = tk_forecast.loc[vika_vuosi,:]
         
-        tot_plot = res_group.loc[res_group.index <=alkuvuosi-1]
-        enn_plot = res_group.loc[res_group.index.isin(range(alkuvuosi,alkuvuosi+11))]
+        tot_plot = res_group.loc[res_group.index <=alkuvuosi]
+        enn_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+1,alkuvuosi+11))]
         uncertain_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+11,alkuvuosi+21))]
         very_uncertain_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+21,res_group.index.max()+1))]
         
