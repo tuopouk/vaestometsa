@@ -28,7 +28,7 @@ import os
 import dash_daq as daq
 import base64
 import io
-#from flask import send_file
+
 
 spinner_type='graph'
 
@@ -43,7 +43,6 @@ variables = pd.DataFrame(requests.get(url).json()['variables']).set_index('code'
 
 vuodet = [int(c) for c in variables.loc['Vuosi'].valueTexts]
 
-#iät = [int(c.replace(' ','').replace('-','').replace('+','')) for c in variables.loc['Ikä'].valueTexts if len(c.replace(' ','').replace('-','').replace('+',''))<=3]
 
 areas = requests.get(url).json()['variables'][0]
 cities = pd.DataFrame(areas['values'],columns = ['aluekoodi'])
@@ -108,11 +107,6 @@ app.index_string = '''
 </html>
 '''
 
-#app.scripts.append_script({"external_url": "https://raw.githubusercontent.com/plotly/plotly.js/master/dist/plotly-locale-fi.js"})
-
-#app.config['suppress_callback_exceptions']=True
-
-
 
 def serve_layout():
         
@@ -134,6 +128,8 @@ def serve_layout():
                     html.H2('Lopuksi',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
                     html.P('Tämä aplikaatio on luotu tarkoituksena tutustuttaa käyttäjä koneoppimisen ihmeelliseen maailmaan. Toivotan siis iloisia hetkiä väestön ennustamisen ja ennakoivan analytiikan sekä tämän aplikaation käytön aikana. Lisätietoja käytetyistä tekniikoista ja testausmääreistä löydät tämän sivun alaosasta.'),
         html.Br(),
+            html.H2('Vastuuvapauslauseke',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
+            html.P("Sivun ja sen sisältö tarjotaan ilmaiseksi sekä sellaisena kuin se on saatavilla. Muista, että sivulta saatavan informaation hyödyntäminen on päätöksiä tekevien tahojen omalla vastuulla. Palvelun tarjoaja ei ole vastuussa menetyksistä, oikeudenkäynneistä, vaateista, kanteista, vaatimuksista, tai kustannuksista taikka vahingosta, olivat ne mitä tahansa tai aiheutuivat ne sitten miten tahansa, jotka johtuvat joko suoraan tai välillisesti yhteydestä palvelun käytöstä. Huomioi, että tämä sivu on yhä kehityksen alla."),
                     html.Div(className = 'row',
                              children=[
 
@@ -917,12 +913,6 @@ def preprocess(data_df, hed_min, hed_max):
 
 def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, hed, city):
     
-#     global prediction_result
-#     global tk_result
-#     global ennusteen_pituus
-
-    
-
 
     if n_clicks > 0:
         
@@ -1031,10 +1021,6 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         
         nollat, väestö = preprocess(data_df,hed_min,hed_max)
-
-#         nollat=nollat.reset_index()
-#         väestö=väestö.reset_index()
-
 
 
         # Testi
@@ -1335,9 +1321,6 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         scl = StandardScaler()
         scl2 = StandardScaler()
-
-
-
 
 
         väestö_ = väestö.copy()
