@@ -129,7 +129,7 @@ def serve_layout():
                     html.P('Tämä aplikaatio on luotu tarkoituksena tutustuttaa käyttäjä koneoppimisen ihmeelliseen maailmaan. Toivotan siis iloisia hetkiä väestön ennustamisen ja ennakoivan analytiikan sekä tämän aplikaation käytön aikana. Lisätietoja käytetyistä tekniikoista ja testausmääreistä löydät tämän sivun alaosasta.'),
         html.Br(),
             html.H2('Vastuuvapauslauseke',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
-            html.P("Sivun ja sen sisältö tarjotaan ilmaiseksi sekä sellaisena kuin se on saatavilla. Muista, että sivulta saatavan informaation hyödyntäminen on päätöksiä tekevien tahojen omalla vastuulla. Palvelun tarjoaja ei ole vastuussa menetyksistä, oikeudenkäynneistä, vaateista, kanteista, vaatimuksista, tai kustannuksista taikka vahingosta, olivat ne mitä tahansa tai aiheutuivat ne sitten miten tahansa, jotka johtuvat joko suoraan tai välillisesti yhteydestä palvelun käytöstä. Huomioi, että tämä sivu on yhä kehityksen alla."),
+            html.P("Sivun ja sen sisältö tarjotaan ilmaiseksi sekä sellaisena kuin se on saatavilla. Kyseessä on yksityishenkilön tarjoama palvelu eikä viranomaispalvelu. Muista, että sivulta saatavan informaation hyödyntäminen on päätöksiä tekevien tahojen omalla vastuulla. Palvelun tarjoaja ei ole vastuussa menetyksistä, oikeudenkäynneistä, vaateista, kanteista, vaatimuksista, tai kustannuksista taikka vahingosta, olivat ne mitä tahansa tai aiheutuivat ne sitten miten tahansa, jotka johtuvat joko suoraan tai välillisesti yhteydestä palvelun käytöstä. Huomioi, että tämä sivu on yhä kehityksen alla."),
                     html.Div(className = 'row',
                              children=[
 
@@ -976,6 +976,8 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         ennuste_leikkaus = [i for i in pd.unique(old_tk_forecast.index) if i not in pd.unique(new_tk_forecast.index)]
         toteutuneet_ennusteet = len(ennuste_leikkaus)
+        
+        first_new_tk_forecast_year = new_tk_forecast.index.min()
 
         
         tk_forecast = pd.concat([old_tk_forecast.loc[ennuste_leikkaus],new_tk_forecast],axis=0).sort_index()
@@ -1450,7 +1452,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                                    'Testin RMSE': quick_nrmse,
                                    'Testin R²':quick_r2,
                                    'Testatut vuodet':toteutuneet_ennusteet,
-                                   'Viimeisin testivuosi': vika_vuosi,
+                                   'Viimeisin testivuosi': sorted(ennuste_leikkaus)[-1],
                                    'Tilastokeskuksen MAE': nmae_tk,
                                    'Tilastokeskuksen RMSE': nrmse_tk,
                                    'Tilastokeskuksen R²':r2_tk,
@@ -1477,6 +1479,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         href_data_downloadable = f'data:{media_type};base64,{data}'
         
         
+        
         tk_plot = tk_forecast.reset_index().groupby('Vuosi').agg({'Tilastokeskuksen ennuste':'sum'}).sort_index()
         
         if ennusteen_pituus > 1:
@@ -1494,7 +1497,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         tk_min = tk_plot.index.min()
         tk_max = tk_plot.index.max()
         
-        tk_latest_age = tk_forecast.loc[vika_vuosi,:]
+        #tk_latest_age = tk_forecast.loc[vika_vuosi,:]
         
         tot_plot = res_group.loc[res_group.index <=alkuvuosi]
         enn_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+1,alkuvuosi+11))]
@@ -1538,7 +1541,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                                                                   tickformat = ' '),
                                           title = dict(xref='paper', 
                                                        yref='paper', 
-                                                       x=.5,
+                                                       x=.3,
 
                                                        xanchor='left', 
                                                        yanchor='bottom',
@@ -1673,9 +1676,9 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                                        line = dict(color='red')
 
                                         ),
-                            go.Scatter(x = tk_plot.index, 
-                                       y = tk_plot['Tilastokeskuksen ennuste'],
-                                      name = 'Tilastokeskuksen ennuste '+str(tk_min)+' - '+str(tk_max),
+                            go.Scatter(x = tk_plot.loc[first_new_tk_forecast_year:].index, 
+                                       y = tk_plot.loc[first_new_tk_forecast_year:]['Tilastokeskuksen ennuste'],
+                                      name = 'Tilastokeskuksen ennuste '+str(first_new_tk_forecast_year)+' - '+str(tk_max),
                                       line = dict(color = 'blue')
                                       )
                              ],
@@ -1685,7 +1688,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                                                      ),
                                           title = dict(xref='paper', 
                                                        yref='paper', 
-                                                       x=.5,
+                                                       x=.3,
 
                                                        xanchor='left', 
                                                        yanchor='bottom',
