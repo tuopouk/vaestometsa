@@ -864,7 +864,8 @@ def preprocess(data_df, hed_min, hed_max):
 
     nollat = pd.merge(left=nollat,right=hed, how='left', left_on=nollat.index, right_on=hed.index).rename(columns={'key_0':'Vuosi'}).set_index('Vuosi')
 
-    nollat['Muutos'] = nollat['Väestö'] - nollat['Lähtö']
+    #nollat['Muutos'] = nollat['Väestö'] - nollat['Lähtö']
+    nollat['fert'] = nollat.Väestö / nollat.Hed
     nollat = nollat.rename(columns={'Väestö':'Ennusta'})
 
     df_0_99 = data_df[data_df.Ikä.isin(np.arange(min(iät),max(iät)))].copy()
@@ -1049,7 +1050,8 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         x = nollat_[nollat_.Vuosi<testi_alkuvuosi][nolla_selittäjät]
         X = scl2.fit_transform(x)
-        y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['Muutos']
+        #y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['Muutos']
+        y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['fert']
 
         svr.fit(X,y)
 
@@ -1069,8 +1071,10 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         n_20 = n[n.Vuosi==testi_alkuvuosi]
         n = n[n.Vuosi<testi_alkuvuosi]
 
-        n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-        n_20.Ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+#         n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+        n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+#         n_20.Ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+        n_20.Ennusta = np.maximum(0,n_20.Hed * n_20.fert)
         n = pd.concat([n,n_20],axis=0)
 
 
@@ -1108,8 +1112,10 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
             loput = pd.concat([ykköset,loput],axis=0)
 
 
-            nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-            nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
+#             nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+#             nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
+            nolla_df['fert'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+            nolla_df['Ennusta'] = np.maximum(0, nolla_df.Hed * nolla_df.fert)
 
             n = pd.concat([n,nolla_df], axis = 0)
 
@@ -1221,7 +1227,8 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
             x = nollat_[nollat_.Vuosi<vika_vuosi][nolla_selittäjät]
             X = scl2.fit_transform(x)
-            y = nollat_[nollat_.Vuosi<vika_vuosi]['Muutos']
+#             y = nollat_[nollat_.Vuosi<vika_vuosi]['Muutos']
+            y = nollat_[nollat_.Vuosi<vika_vuosi]['fert']
 
             svr.fit(X,y)
 
@@ -1242,8 +1249,10 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
             n_20 = n[(n.Vuosi.isin(ennuste_leikkaus))]
             n = n[n.Vuosi<vika_vuosi]
 
-            n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-            n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+#             n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+#             n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+            n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+            n_20.ennusta = np.maximum(0,n_20.Hed * n_20.fert)
             n = pd.concat([n,n_20],axis=0)
 
                          
@@ -1284,9 +1293,12 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
             quick_r2 = round(r2_score(qtt.Ennusta, 
                           qtr.Ennusta),2)
             
-            tot_väestö = '{:,}'.format(int(qtt[qtt.Vuosi==sorted(ennuste_leikkaus)[-1]].Ennusta.sum())).replace(',',' ')
-            enn_väestö = '{:,}'.format(int(np.ceil(qtr[qtr.Vuosi==sorted(ennuste_leikkaus)[-1]].Ennusta.sum()))).replace(',',' ')
-            diff = int(np.ceil(qtr.Ennusta.sum()))-int(qtt.Ennusta.sum())
+            tot = int(qtt[qtt.Vuosi==sorted(ennuste_leikkaus)[-1]].Ennusta.sum())
+            enn = int(np.ceil(qtr[qtr.Vuosi==sorted(ennuste_leikkaus)[-1]].Ennusta.sum()))
+            
+            tot_väestö = '{:,}'.format(tot).replace(',',' ')
+            enn_väestö = '{:,}'.format(enn).replace(',',' ')
+            diff = tot - enn
             diff_document = diff
             
             enn_document = int(np.ceil(qtr[qtr.Vuosi==sorted(ennuste_leikkaus)[-1]].Ennusta.sum()))
@@ -1338,7 +1350,8 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         x = nollat_[nollat_.Vuosi<alkuvuosi][nolla_selittäjät]
         X = scl2.fit_transform(x)
-        y = nollat_[nollat_.Vuosi<alkuvuosi]['Muutos']
+#         y = nollat_[nollat_.Vuosi<alkuvuosi]['Muutos']
+        y = nollat_[nollat_.Vuosi<alkuvuosi]['fert']
 
         svr.fit(X,y)
 
@@ -1355,8 +1368,10 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         n_20 = n[n.Vuosi==alkuvuosi]
         n = n[n.Vuosi<alkuvuosi]
 
-        n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-        n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+#         n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+#         n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+        n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+        n_20.ennusta = np.maximum(0,n_20.Hed + n_20.fert)
         n = pd.concat([n,n_20],axis=0)
 
         if ennusteen_pituus > 1:
@@ -1396,8 +1411,10 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
 
 
-                nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-                nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
+#                 nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+#                 nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
+                n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+                n_20.ennusta = np.maximum(0,n_20.Hed + n_20.fert)
 
                 n = pd.concat([n,nolla_df], axis = 0)
 
