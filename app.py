@@ -122,6 +122,9 @@ def serve_layout():
                     html.H2('Ennusteen rakenne',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
                     html.P('Tärkeä kysymys satunnaismetsän käytössä on metsässä olevien puiden määrä, jonka saa tässä sovelluksessa itse valita. Muu ennustamiseen ja ennusteen laadun testaamiseen liittyvä parametrien valinta on myös mahdollistettu käyttäjän tehtäväksi. Käyttäjä voi valita ennustettavan kunnan sekä ennusteen pituuden. Tässä on hyvä huomioida, että ennusteen laatu olennaisesti heikkenee mitä pitemmälle ajalle ennuste tehdään. Käyttäjän on myös mahdollista testata ennusteen laatua, jättämällä haluttu osus datasta testidataksi. Tällöin ohjelma pyrkii ennustamaan valitun kunnan väestön viimeisimmiltä vuosilta. Opetusdatan määrän voi myös itse päättää. Tässä ajatuksena on, että liian kaukaa historiasta oleva data ei välttämättä ole edustavaa tulevaisuutta ennustettaessa tai tämän päivän väestöä selitettäessä. Malli on hyvin yksinkertainen ja perustuu siihen, että jokaisen vuoden tietyn ikäinen väestö selittyy iällä sekä edellisen vuoden vuotta nuorempien määrällä. Ikä sinänsä selittää kuolemanvaaraa (esim. 90 -vuotiailla on huomattavasti lyhyempi elinajanodote kuin 7 -vuotiailla) ja väestön muutosta (esim. opiskeluikäiset muuttavat toisiin kaupunkeihin opiskelumahdollisuuksien mukaan). Nollavuotiaat ennustetaan omalla satunnaismetsällään perustuen käyttäjän valitsemiin hedelmällisyysikiin. Näin voidaan määrittää minkä ikäisen väestön oletataan selittävän nollavuotiaiden määrää.' ),
                     html.Br(),
+                    html.H2('Päivitys helmikuu 2022',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
+                    html.P('Nyt väestömetsässä voi valita ennustetaanko nollavuotiaiden määrä ennustamalla väestön hedelmällisyyttä vai nollavuotiaiden vuosimuutosta. Hedelmällisyyttä ennustamalla saatu hedelmällisyysluku kerrotaan edellisen vuoden hedelmällisellä väestöllä (käyttäjän valitsemat iät). Muutosta ennustamalla ennustetaan nollavuotiaiden vuosimuutos hedelmällisen väestön ja edeltävien nollavuotiaiden avulla. Aiemmin nollavuotiaita pystyi ennustamaan vain vuosimuutoksen avulla.'),
+                    html.Br(),
                     html.H2('Ennusteen simuloiminen ja testaaminen',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
                     html.P('Väestön ennustamisessa ensimmäinen ennustettava vuosi ennustetaan tiedettyjen edellisen vuoden toteutuneiden faktatietojen perusteella. Seuraavan vuoden ennustamisessa hyödynnetään edellisen vuoden ennustettuja tietoja ja näin jatketaan kunnes kaikki tulevat vuodet on käyty läpi. Simulaatiossa tämä toimenpide suoritetaan menneisyydelle. Näin saadaan parempi käsitys kuinka hyvin ennustemalli toimisi pitemmälle tulevaisuuteen. Tässä tapauksessa simulaation laatua mitataan kolmella indikaattorilla (absoluuttinen keskivirhe (MAE), keskimääräinen neliövirhe (RMSE) sekä selitysaste (R²) ). Se onko ennuste luotettava indikaattorien perusteella jää käyttäjän harkitsemaksi. Tässä sovelluksessa indikaattorien hyvyyttä kuvaa suuntaa antavat liikennevalovärit (punainen, oranssi ja vihreä). Mukaan on myös otettu Tilastokeskuksen ennuste, jonka ennustetut väestömäärät on testattu niiltä vuosilta, joilta on olemassa myös Tilastokeskuksen vahvistamat väestön toteumatiedot. Tilastokeskus tekee väestöennusteen kunnittain kolmen vuoden välein. Viimeisin Tilastokeskuksen ennuste on vuodelta '+str(min(tk_ennustevuodet))+'. Tilastokeskuksen aiempi ennuste haetaan Statfinin arkistorajapinnan kautta. Näin saadaan myös viimeisimmän TK:n ennustetta edeltävät kaksi ennustevuotta vertailuun mukaan. Testaus suoritetaan samoilla indikaattoreilla kuin simulaatiossa. Testaaminen eroaa simulaatiosta siten, että testaamisessa vain vertaillaan saatuja arvoja riippumatta arvojen muodostustavasta. Sekä Tilastokeskuksen, että tämän koneoppimismallin testitiedot saa vietyä, muiden metatietojen ohella, Excel-tiedostoon sivun alalaitaan ilmestyvän linkin kautta. Itse väestöennusteprojektio luodaan automaattisesti testiajojen jälkeen.'),
                     html.Br(),
@@ -184,7 +187,16 @@ def serve_layout():
                                                            updatemode='drag'
                                                           ),
                                                  html.Br(),
-                                                 html.Div(id = 'fertility_indicator', style={'margin-top': 20})
+                                                 html.Div(id = 'fertility_indicator', style={'margin-top': 20}),
+                                                 html.H2('Valitse nollavuotiaiden ennustuskriteeri.'),
+                                                 dcc.RadioItems(id = 'zero_mode',
+                                                                  options=[
+                                                                       {'label': 'Hedelmällisyys', 'value': 'fert'},
+                                                                       {'label': 'Muutos', 'value': 'muutos'}
+                                                                   ],
+                                                                value = 'fert',
+                                                                labelStyle={'display': 'inline-block'}
+                                                               )
                                                 ])
                              ]
                     ),
@@ -864,7 +876,7 @@ def preprocess(data_df, hed_min, hed_max):
 
     nollat = pd.merge(left=nollat,right=hed, how='left', left_on=nollat.index, right_on=hed.index).rename(columns={'key_0':'Vuosi'}).set_index('Vuosi')
 
-    #nollat['Muutos'] = nollat['Väestö'] - nollat['Lähtö']
+    nollat['Muutos'] = nollat['Väestö'] - nollat['Lähtö']
     nollat['fert'] = nollat.Väestö / nollat.Hed
     nollat = nollat.rename(columns={'Väestö':'Ennusta'})
 
@@ -894,6 +906,9 @@ def preprocess(data_df, hed_min, hed_max):
     return [nollat, väestö]
 
 
+
+
+
 @app.callback(
     Output('ennuste','children'),
     [
@@ -906,13 +921,14 @@ def preprocess(data_df, hed_min, hed_max):
     State('alkuvuosi','value'),
     State('testikoko','value'),
     State('hed','value'),
-    State('kunnat','value')
+    State('kunnat','value'),
+    State('zero_mode','value')    
     
     ]
 )
 
 
-def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, hed, city):
+def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, hed, city, zero_mode):
     
 
     if n_clicks > 0:
@@ -1050,8 +1066,12 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         x = nollat_[nollat_.Vuosi<testi_alkuvuosi][nolla_selittäjät]
         X = scl2.fit_transform(x)
-        #y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['Muutos']
-        y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['fert']
+        
+        if zero_mode != 'fert':
+        
+            y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['Muutos']
+        else:
+            y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['fert']
 
         svr.fit(X,y)
 
@@ -1070,11 +1090,15 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         n_20 = n[n.Vuosi==testi_alkuvuosi]
         n = n[n.Vuosi<testi_alkuvuosi]
-
-#         n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-        n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-#         n_20.Ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
-        n_20.Ennusta = np.maximum(0,n_20.Hed * n_20.fert)
+        
+        if zero_mode != 'fert':
+            n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+            n_20.Ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+        else:
+            n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+            n_20.Ennusta = np.maximum(0,n_20.Hed * n_20.fert)
+         
+        
         n = pd.concat([n,n_20],axis=0)
 
 
@@ -1111,11 +1135,12 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
             loput = pd.concat([ykköset,loput],axis=0)
 
-
-#             nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-#             nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
-            nolla_df['fert'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-            nolla_df['Ennusta'] = np.maximum(0, nolla_df.Hed * nolla_df.fert)
+            if zero_mode != 'fert':
+                nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+                nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
+            else:
+                nolla_df['fert'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+                nolla_df['Ennusta'] = np.maximum(0, nolla_df.Hed * nolla_df.fert)
 
             n = pd.concat([n,nolla_df], axis = 0)
 
@@ -1227,8 +1252,11 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
             x = nollat_[nollat_.Vuosi<vika_vuosi][nolla_selittäjät]
             X = scl2.fit_transform(x)
-#             y = nollat_[nollat_.Vuosi<vika_vuosi]['Muutos']
-            y = nollat_[nollat_.Vuosi<vika_vuosi]['fert']
+            
+            if zero_mode != 'fert':
+                y = nollat_[nollat_.Vuosi<vika_vuosi]['Muutos']
+            else:
+                y = nollat_[nollat_.Vuosi<vika_vuosi]['fert']
 
             svr.fit(X,y)
 
@@ -1248,14 +1276,16 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
             n_20 = n[(n.Vuosi.isin(ennuste_leikkaus))]
             n = n[n.Vuosi<vika_vuosi]
-
-#             n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-#             n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
-            n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-            n_20.ennusta = np.maximum(0,n_20.Hed * n_20.fert)
+            
+            if zero_mode != 'fert':
+                n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+                n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+            else:
+                n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+                n_20.ennusta = np.maximum(0,n_20.Hed * n_20.fert)
+           
             n = pd.concat([n,n_20],axis=0)
-
-                         
+                        
 
 
             result = pd.concat([n[['Vuosi',
@@ -1350,8 +1380,11 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         x = nollat_[nollat_.Vuosi<alkuvuosi][nolla_selittäjät]
         X = scl2.fit_transform(x)
-#         y = nollat_[nollat_.Vuosi<alkuvuosi]['Muutos']
-        y = nollat_[nollat_.Vuosi<alkuvuosi]['fert']
+        
+        if zero_mode != 'fert':
+            y = nollat_[nollat_.Vuosi<alkuvuosi]['Muutos']
+        else:
+            y = nollat_[nollat_.Vuosi<alkuvuosi]['fert']
 
         svr.fit(X,y)
 
@@ -1367,11 +1400,13 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         n_20 = n[n.Vuosi==alkuvuosi]
         n = n[n.Vuosi<alkuvuosi]
-
-#         n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-#         n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
-        n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-        n_20.ennusta = np.maximum(0,n_20.Hed + n_20.fert)
+        
+        if zero_mode != 'fert':
+            n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+            n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+        else:
+            n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+            n_20.ennusta = np.maximum(0,n_20.Hed + n_20.fert)
         n = pd.concat([n,n_20],axis=0)
 
         if ennusteen_pituus > 1:
@@ -1410,11 +1445,12 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
 
 
-
-#                 nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-#                 nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
-                n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-                n_20.ennusta = np.maximum(0,n_20.Hed + n_20.fert)
+                if zero_mode != 'fert':
+                    nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+                    nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
+                else:
+                    n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+                    n_20.ennusta = np.maximum(0,n_20.Hed + n_20.fert)
 
                 n = pd.concat([n,nolla_df], axis = 0)
 
@@ -1459,6 +1495,8 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                                    'Opetuksen aloitusvuosi':aloita,
                                    'Pienin hedelmällisyysikä':hed_min,
                                    'Suurin hedelmällisyysikä':hed_max,
+                                   'Nollavuotiaiden ennustekriteeri': {'fert':'Hedelmällisyys', 
+                                                                       'muutos': 'Nollavuotiaiden vuosimuutos'}[zero_mode],
                                    'Puiden lukumäärä':puut,
                                    'Simulaation MAE': nmae,
                                    'Simulaation RMSE': nrmse,
