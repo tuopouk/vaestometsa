@@ -1546,7 +1546,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                                         ),
                             go.Scatter(x = tk_plot.loc[data_df.index.max()+1:].index, 
                                        y = tk_plot.loc[data_df.index.max()+1:]['Tilastokeskuksen ennuste'],
-                                      name = 'Tilastokeskuksen ennuste '+str(data_df.index.max()+1)+' - '+str(new_tk_forecast.index.max()),
+                                      name = 'Tilastokeskuksen ennuste '+str(data_df.index.max()+1)+' - '+str(result.index.max()),
                                       line = dict(color = 'blue')
                                       )
                              ],
