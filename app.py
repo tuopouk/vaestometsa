@@ -62,10 +62,6 @@ ennuste_url = "https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin/vrm/vaenn/stat
 tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables'][1]['valueTexts']]
 
 
-ennuste_leikkaus = [c for c in vanha_tk_ennustevuodet if c in tk_ennustevuodet]
-
-max_depth = None
-
 norm_selittäjät = ['Ikä',
                    'Lähtö'
                     ]
@@ -126,7 +122,7 @@ def serve_layout():
                     html.P('Nyt väestömetsässä voi valita ennustetaanko nollavuotiaiden määrä ennustamalla väestön hedelmällisyyttä vai nollavuotiaiden vuosimuutosta. Hedelmällisyyttä ennustamalla saatu hedelmällisyysluku kerrotaan edellisen vuoden hedelmällisellä väestöllä (käyttäjän valitsemat iät). Muutosta ennustamalla ennustetaan nollavuotiaiden vuosimuutos hedelmällisen väestön ja edeltävien nollavuotiaiden avulla. Aiemmin nollavuotiaita pystyi ennustamaan vain vuosimuutoksen avulla.'),
                     html.Br(),
                     html.H2('Ennusteen simuloiminen ja testaaminen',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
-                    html.P('Väestön ennustamisessa ensimmäinen ennustettava vuosi ennustetaan tiedettyjen edellisen vuoden toteutuneiden faktatietojen perusteella. Seuraavan vuoden ennustamisessa hyödynnetään edellisen vuoden ennustettuja tietoja ja näin jatketaan kunnes kaikki tulevat vuodet on käyty läpi. Simulaatiossa tämä toimenpide suoritetaan menneisyydelle. Näin saadaan parempi käsitys kuinka hyvin ennustemalli toimisi pitemmälle tulevaisuuteen. Tässä tapauksessa simulaation laatua mitataan kolmella indikaattorilla (absoluuttinen keskivirhe (MAE), keskimääräinen neliövirhe (RMSE) sekä selitysaste (R²) ). Se onko ennuste luotettava indikaattorien perusteella jää käyttäjän harkitsemaksi. Tässä sovelluksessa indikaattorien hyvyyttä kuvaa suuntaa antavat liikennevalovärit (punainen, oranssi ja vihreä). Mukaan on myös otettu Tilastokeskuksen ennuste, jonka ennustetut väestömäärät on testattu niiltä vuosilta, joilta on olemassa myös Tilastokeskuksen vahvistamat väestön toteumatiedot. Tilastokeskus tekee väestöennusteen kunnittain kolmen vuoden välein. Viimeisin Tilastokeskuksen ennuste on vuodelta '+str(min(tk_ennustevuodet))+'. Tilastokeskuksen aiempi ennuste haetaan Statfinin arkistorajapinnan kautta. Näin saadaan myös viimeisimmän TK:n ennustetta edeltävät kaksi ennustevuotta vertailuun mukaan. Testaus suoritetaan samoilla indikaattoreilla kuin simulaatiossa. Testaaminen eroaa simulaatiosta siten, että testaamisessa vain vertaillaan saatuja arvoja riippumatta arvojen muodostustavasta. Sekä Tilastokeskuksen, että tämän koneoppimismallin testitiedot saa vietyä, muiden metatietojen ohella, Excel-tiedostoon sivun alalaitaan ilmestyvän linkin kautta. Itse väestöennusteprojektio luodaan automaattisesti testiajojen jälkeen.'),
+                    html.P('Ennustetta voi simuloida valitsemalla testidatan suhteellisen osuuden, joka määrittää kuinka paljon viimeisimpiä toteumavuosia käytetään mallin testaamiseen. Ennusteessa ensimmäisen vuosi ennusteetaan edellisen vuoden toteumatietojen perusteella. Näin tuoteaan ennuste, jota käytetään seuraavan vuoden ennustetta tehdessä jne. Simulaatiossa nähdään paremmin kuinka malli toimii useaa vuotta ennustettaessa. Simulaation laatuun vaikuttavat asetetut parametrit, simulaation pituus sekä opetuksen aloitusvuosi. Mitä pitempi on ennustepituus, sitä heikommin malli suoriutuu. Vastaavasti liian pitkä historiadata ei välttämättä ole enää edustavaa, jolloin sopiva ajankohta täytyy hakea empiirisesti. Simulaatiossa ei välttämättä voi hyödyntää yhtä pitkältä ajalta Tilastokeskuksen ennustetta, koska vanhoja historiallisia ennusteita rajapinnan kautta. Tämän vuoksi simulaation lisäksi tehdään testi, jolla tehdään simulaatio vain niille vuosille, joilta on myös Tilastokeskuksen ennustedata saatavilla. Näin voidaan verrata paremmin Tilastokeskuksen ja käyttäjän tekemän ennusteen eroavaisuuksia. Tässä sovelluksessa on myös simulaation laatua mittaavat kolme indikaattoria (absoluuttinen keskivirhe (MAE), keskimääräinen neliövirhe (RMSE) sekä selitysaste (R²) ), joista on kerrottu lisää viiteosiossa. Tässä sovelluksessa indikaattorien hyvyyttä kuvaa suuntaa antavat liikennevalovärit (punainen, oranssi ja vihreä). Tilastokeskuksen viimeisimmän ennusteen lisäksi Tilastokeskuksen aiempi ennuste haetaan Statfinin arkistorajapinnan kautta. Näin saadaan myös viimeisimmän TK:n ennustetta edeltävät kaksi ennustevuotta vertailuun mukaan. Sekä Tilastokeskuksen, että tämän koneoppimismallin testitiedot saa vietyä, muiden metatietojen ohella, Excel-tiedostoon sivun alalaitaan ilmestyvän linkin kautta. Itse väestöennusteprojektio luodaan automaattisesti testiajojen jälkeen.'),
                     html.Br(),
                     html.H2('Lopuksi',style=dict(textAlign='center',fontSize=26, fontFamily='Arial')),
                     html.P('Tämä aplikaatio on luotu tarkoituksena tutustuttaa käyttäjä koneoppimisen ihmeelliseen maailmaan. Toivotan siis iloisia hetkiä väestön ennustamisen ja ennakoivan analytiikan sekä tämän aplikaation käytön aikana. Lisätietoja käytetyistä tekniikoista ja testausmääreistä löydät tämän sivun alaosasta.'),
@@ -842,22 +838,27 @@ def get_data(city_code):
     
     return data_df
 
+
+
 def preprocess(data_df, hed_min, hed_max):
-    
-    iät = sorted(list(pd.unique(data_df.Ikä)))
-    
+
+    # Nollat ja 1-100 mähläys 
+
     nollat_prev = data_df[data_df.Ikä==0] 
     nollat_prev = nollat_prev.loc[nollat_prev.index < nollat_prev.index.max()]
+
 
     nollat = data_df[data_df.Ikä==0] 
     nollat = nollat.loc[nollat.index > nollat.index.min()]
 
     nollat['Lähtö'] = nollat_prev[['Väestö']].values
+            
     nollat_last = nollat.iloc[-1:,:].copy()
     nollat_last.index +=1
     nollat_last.Lähtö = nollat_last.Väestö
     nollat_last.Väestö=np.nan
     nollat=pd.concat([nollat,nollat_last],axis=0)
+
 
     hed = data_df[data_df.Ikä.isin(np.arange(hed_min,hed_max+1))].reset_index().groupby('Vuosi').agg({'Väestö':'sum'}).rename(columns={'Väestö':'Hed'})
 
@@ -875,17 +876,13 @@ def preprocess(data_df, hed_min, hed_max):
 
 
     nollat = pd.merge(left=nollat,right=hed, how='left', left_on=nollat.index, right_on=hed.index).rename(columns={'key_0':'Vuosi'}).set_index('Vuosi')
-
     nollat['Muutos'] = nollat['Väestö'] - nollat['Lähtö']
     nollat['fert'] = nollat.Väestö / nollat.Hed
     nollat = nollat.rename(columns={'Väestö':'Ennusta'})
-
-    df_0_99 = data_df[data_df.Ikä.isin(np.arange(min(iät),max(iät)))].copy()
+    df_0_99 = data_df[data_df.Ikä.isin(np.arange(0,100))].copy()
     df_0_99 = df_0_99.loc[df_0_99.index < df_0_99.index.max()]
-
-    df_1_100 = data_df[data_df.Ikä.isin(np.arange(min(iät)+1,max(iät)+1))]
+    df_1_100 = data_df[data_df.Ikä.isin(np.arange(1,101))]
     df_1_100 = df_1_100.loc[df_1_100.index > df_1_100.index.min()]
-
     df_1_100['Lähtö'] = df_0_99[['Väestö']].values
 
 
@@ -895,7 +892,7 @@ def preprocess(data_df, hed_min, hed_max):
     df_1_100_last.Väestö = np.nan
     df_1_100_last = pd.concat([nollat_last,df_1_100_last])
     df_1_100_last.Ikä+=1
-    df_1_100_last = df_1_100_last[df_1_100_last.Ikä<=max(iät)]
+    df_1_100_last = df_1_100_last[df_1_100_last.Ikä<=100]
 
     väestö = pd.concat([df_1_100,df_1_100_last],axis=0)
     väestö['Kohorttimuutos'] = väestö['Väestö'] - väestö['Lähtö']
@@ -903,10 +900,149 @@ def preprocess(data_df, hed_min, hed_max):
 
     nollat=nollat.reset_index()
     väestö=väestö.reset_index()
-    return [nollat, väestö]
+    
+    return (nollat, väestö)
+
+def predict(nollat, väestö, ridge, svr, hed_min, hed_max, until,city, zero_mode):
+    
+    if zero_mode not in ['fert','muutos']:
+        zero_mode = 'fert'
+    
+    results = []
+    
+
+
+    scl = StandardScaler()
+    scl2 = StandardScaler()
+    väestö_ = väestö.copy()
+            
+
+    nollat_=nollat.copy()
+    
+    # Simulaatio alkaa tästä
+    aloita = väestö.Vuosi.max()
+
+
+    x = väestö_[väestö_.Vuosi<aloita][norm_selittäjät]
+    X = scl.fit_transform(x)
+            
+
+            
+    y = väestö_[väestö_.Vuosi<aloita]['Kohorttimuutos']
+
+
+    ridge.fit(X,y)
+
+    x = nollat_[nollat_.Vuosi<aloita][nolla_selittäjät]
+    X = scl2.fit_transform(x)
+            
+    #y = nollat_[nollat_.Vuosi<aloita]['muutos']
+    y = nollat_[nollat_.Vuosi<aloita][{'muutos':'Muutos','fert':'fert'}[zero_mode]]
+
+    svr.fit(X,y)
+
+    v = väestö_.copy()
+
+    v_20 = v[v.Vuosi==aloita]
+    v = v[v.Vuosi<aloita]
+
+
+    v_20.Kohorttimuutos =  ridge.predict(scl.transform(v_20[norm_selittäjät]))
+    v_20.Ennusta = np.maximum(0,v_20.Lähtö + v_20.Kohorttimuutos)
+
+    v = pd.concat([v,v_20],axis=0)
+
+
+    n = nollat_.copy()
+
+
+    n_20 = n[n.Vuosi==aloita]
+    n = n[n.Vuosi<aloita]
+    
+    
+    if zero_mode != 'fert':
+    
+        n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+        n_20.Ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
+    else:
+        n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
+    
+        n_20.Ennusta = np.maximum(0,n_20.Hed * n_20.fert)
+
+    n = pd.concat([n,n_20],axis=0)
 
 
 
+    for year in range(aloita+1, until+1):
+
+
+        hed_df = v[(v.Vuosi == year -1) & (v.Ikä.isin(np.arange(hed_min,hed_max+1)))].groupby('Vuosi').agg({'Ennusta':'sum'}).rename(columns={'Ennusta':'Hed'}).reset_index()
+
+
+        nolla_df = n[(n.Vuosi==year-1)]
+
+        ykköset = nolla_df.copy()
+
+        ykköset.Lähtö = ykköset.Ennusta
+        ykköset.Vuosi+=1
+        ykköset.Ikä+=1
+        ykköset = ykköset[['Vuosi','Ikä','Lähtö']]
+
+
+        nolla_df.Lähtö = nolla_df.Ennusta
+        nolla_df.Vuosi+=1
+
+
+
+        nolla_df['Hed']=hed_df['Hed'].values
+
+
+        loput = v[(v.Vuosi==year-1)&(v.Ikä<100)]
+        loput.Ikä+=1
+        loput.Vuosi+=1
+        loput.Lähtö=loput.Ennusta
+        loput.drop(['Ennusta','Kohorttimuutos'],axis=1, inplace=True)
+
+        loput = pd.concat([ykköset,loput],axis=0)
+        
+        if zero_mode != 'fert':
+        
+            nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+            nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
+        else:
+            nolla_df['fert'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
+        
+            nolla_df['Ennusta'] = np.maximum(0, nolla_df.Hed * nolla_df.fert)
+
+
+        n = pd.concat([n,nolla_df], axis = 0)
+
+
+        loput['Kohorttimuutos'] = ridge.predict(scl.transform(loput[norm_selittäjät]))
+        loput['Ennusta'] = np.maximum(0,loput.Lähtö + loput.Kohorttimuutos)
+
+
+        v = pd.concat([v,loput],axis = 0)
+
+        result = pd.concat([n[['Vuosi',
+                                       'Ikä',
+
+                                       'Ennusta']],v[['Vuosi',
+                                                      'Ikä',
+
+                                                      'Ennusta']]],axis = 0).sort_values(by='Ikä').rename(columns={'Ennusta':'Ennuste'})
+        result['Kaupunki'] = city
+
+
+            
+        results.append(result)
+            
+        
+
+    tulosdata = pd.concat(results).rename(columns = {'Ennuste':'Väestöennuste'}).sort_values(by = ['Kaupunki','Vuosi', 'Ikä'])[['Kaupunki','Vuosi','Ikä','Väestöennuste']]
+    
+    
+    return tulosdata[tulosdata.Vuosi>=aloita].drop_duplicates().set_index('Vuosi')
 
 
 @app.callback(
@@ -933,10 +1069,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
     if n_clicks > 0:
         
-        
-        
-        clicked = True
-                               
+  
 
         test_size = testikoko/100
        
@@ -949,7 +1082,11 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         
         
         data_df = get_data(city_code)
+        
+        
+        
         data_df = data_df.loc[data_df.index>=aloita]
+        
         
         testivuodet = int(math.ceil((data_df.index.max() - aloita)*test_size))
         
@@ -960,226 +1097,67 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         testattavat = ', '.join([str(testi_alkuvuosi+i) for i in range(testivuodet+1)])
         
         alkuvuosi = data_df.index.max()
+     
+    
+        train_data = data_df.loc[data_df.index.isin(np.arange(aloita, testi_alkuvuosi))]
+        test_data = data_df.loc[data_df.index>=testi_alkuvuosi]
+
+
+        nollat, väestö = preprocess(train_data,hed_min, hed_max)
+
+        until=test_data.index.max()
         
         
-        
-        svr = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=max_depth,
+        svr = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=None,
                       max_features='auto', max_leaf_nodes=None,
                       min_impurity_decrease=0.0, min_impurity_split=None,
-                      min_samples_leaf=2, min_samples_split=30,
+                      min_samples_leaf=2, min_samples_split=2,
                       min_weight_fraction_leaf=0.0, n_estimators=puut,
                       n_jobs=-1, oob_score=True, random_state=9876, verbose=0,
                       warm_start=False)
 
 
-        ridge = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=max_depth,
+        ridge = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=None,
                       max_features='auto', max_leaf_nodes=None,
                       min_impurity_decrease=0.0, min_impurity_split=None,
-                      min_samples_leaf=2, min_samples_split=30,
+                      min_samples_leaf=2, min_samples_split=2,
                       min_weight_fraction_leaf=0.0, n_estimators=puut,
                       n_jobs=-1, oob_score=True, random_state=9876, verbose=0,
                       warm_start=False)
-
-
-
-        # Mähläys
+        
+        
+        
+        testitulos = predict(nollat, väestö, ridge, svr, hed_min, hed_max, until,city, zero_mode)
+        
 
         
         # 1. Baseline (Tilastokeskuksen ennuste)
         
+        ## Yhdistetään vanha ja uusi ennuste.
+        
         old_tk_forecast = get_old_tk_forecast(city_code)
        
         new_tk_forecast = get_new_tk_forecast(city_code)
-
-        ennuste_leikkaus = [i for i in pd.unique(old_tk_forecast.index) if i not in pd.unique(new_tk_forecast.index)]
-        toteutuneet_ennusteet = len(ennuste_leikkaus)
         
-        first_new_tk_forecast_year = new_tk_forecast.index.min()
-
-        
-        tk_forecast = pd.concat([old_tk_forecast.loc[ennuste_leikkaus],new_tk_forecast],axis=0).sort_index()
+        tk_forecast = pd.concat([old_tk_forecast,new_tk_forecast],axis=0).reset_index().drop_duplicates(subset=['Vuosi','Ikä'],keep='last').set_index('Vuosi')
         
         
- 
-
-        tk_test = pd.merge(left=data_df.drop('Kaupunki',axis=1), right=tk_forecast, how='inner', left_on=[data_df.index,'Ikä'], right_on=[tk_forecast.index,'Ikä']).rename(columns={'key_0':'Vuosi'}).sort_values(by=['Vuosi','Ikä']).set_index('Vuosi')
+        ## Yhdistetään testitulos TK:n ennusteen kanssa.
         
-        try:
-
-            nmae_tk = round(mean_absolute_error(tk_test.Väestö,tk_test['Tilastokeskuksen ennuste'])/tk_test.Väestö.std(),2)
-            nrmse_tk = round(math.sqrt(mean_squared_error(tk_test.Väestö,tk_test['Tilastokeskuksen ennuste']))/tk_test.Väestö.std(),2)
-            r2_tk = round(r2_score(tk_test.Väestö,tk_test['Tilastokeskuksen ennuste']),2)
-
-            v_tot = int(tk_test.loc[tk_test.index.max()].Väestö.sum())
-            v_enn = int(tk_test.loc[tk_test.index.max()]['Tilastokeskuksen ennuste'].sum())
-            diff = v_enn-v_tot
-            v_diff_document = diff
-
-            v_tot_document = v_tot
-            v_enn_document = v_enn
-            
-            if diff > 0:
-                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä enemmän.'
-            elif diff < 0:
-                diff_word = 'erosi toteutuneesta: '+str(np.absolute(diff))+' henkilöä vähemmän.'
-            else:
-                diff_word = 'ennusti täsmälleen saman väestön.'
-            
-            
-            
-            tk_chain = 'Tilastokeskuksen ennusteen vastaavat arvot MAE: '+str(nmae_tk)+', RMSE: '+str(nrmse_tk)+', R²: '+str(r2_tk)+'.'
-            #tk_chain+= '. Toteutunut väestö vuodelle '+str(tk_test[tk_test.vuosi==tk_test.vuosi.max()].vuosi)+': '+'{:,}'.format()
-            tk_chain+= ' Tilastokeskuksen ennuste: '+'{:,}'.format(v_enn).replace(',',' ')
-            tk_chain += '. Tilastokeskuksen ennuste '+diff_word
-        except:
-            # Ei voi testata.
-            tk_chain = ''
-
-       # Nollat ja 1-100 mähläys 
-
-
+        test_result = pd.merge(left = testitulos.reset_index(), right = tk_forecast[['Ikä','Tilastokeskuksen ennuste']].reset_index(), on = ['Vuosi','Ikä'], how = 'left').set_index('Vuosi')
         
-        nollat, väestö = preprocess(data_df,hed_min,hed_max)
-
-
-        # Testi
-        
-        
-        
-        # Simulaatio: opetus ensimmäiseen testivuoteen asti, minkä jälkeen projektiota jatketaan kuten normaalisti. Lopuksi mitataan simulaation laatu.
-        
+        test_result = pd.merge(left = test_result.reset_index(), right = test_data[['Ikä','Väestö']].reset_index(), on = ['Vuosi','Ikä'], how = 'inner').set_index('Vuosi')
         
 
-        scl = StandardScaler()
-        scl2 = StandardScaler()
-
-        väestö_ = väestö.copy()
-
-        nollat_=nollat.copy()
-
-
-        x = väestö_[väestö_.Vuosi<testi_alkuvuosi][norm_selittäjät]
-        X = scl.fit_transform(x)
-        y= väestö_[väestö_.Vuosi<testi_alkuvuosi]['Kohorttimuutos']
-
-        ridge.fit(X,y)
-
-        x = nollat_[nollat_.Vuosi<testi_alkuvuosi][nolla_selittäjät]
-        X = scl2.fit_transform(x)
-        
-        if zero_mode != 'fert':
-        
-            y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['Muutos']
-        else:
-            y = nollat_[nollat_.Vuosi<testi_alkuvuosi]['fert']
-
-        svr.fit(X,y)
-
-        v = väestö_.copy()
-
-        v_20 = v[v.Vuosi==testi_alkuvuosi]
-        v = v[v.Vuosi<testi_alkuvuosi]
-
-        v_20.Kohorttimuutos =  ridge.predict(scl.transform(v_20[norm_selittäjät]))
-        v_20.Ennusta = np.maximum(0,v_20.Lähtö + v_20.Kohorttimuutos)
-        v = pd.concat([v,v_20],axis=0)
-
-
-        n = nollat_.copy()
-
-
-        n_20 = n[n.Vuosi==testi_alkuvuosi]
-        n = n[n.Vuosi<testi_alkuvuosi]
-        
-        if zero_mode != 'fert':
-            n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-            n_20.Ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
-        else:
-            n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-            n_20.Ennusta = np.maximum(0,n_20.Hed * n_20.fert)
-         
-        
-        n = pd.concat([n,n_20],axis=0)
-
-
-        for year in tqdm(range(testi_alkuvuosi+1, alkuvuosi+1)):
-
-            hed_df = v[(v.Vuosi == year -1) & (v.Ikä.isin(np.arange(hed_min,hed_max+1)))].groupby('Vuosi').agg({'Ennusta':'sum'}).rename(columns={'Ennusta':'Hed'}).reset_index().copy()
-
-
-            nolla_df = n[(n.Vuosi==year-1)].copy()
-
-            ykköset = nolla_df.copy()
-
-            ykköset.Lähtö = ykköset.Ennusta
-            ykköset.Vuosi+=1
-            ykköset.Ikä+=1
-            ykköset = ykköset[['Vuosi',
-
-                               'Ikä','Lähtö']]
-
-
-            nolla_df.Lähtö = nolla_df.Ennusta
-            nolla_df.Vuosi+=1
+        toteutuneet_ennusteet = len([i for i in pd.unique(tk_forecast.index) if i in pd.unique(data_df.index)])
 
 
 
-            nolla_df['Hed']=hed_df['Hed'].values
-
-
-            loput = v[(v.Vuosi==year-1)&(v.Ikä<100)].copy()
-            loput.Ikä+=1
-            loput.Vuosi+=1
-            loput.Lähtö=loput.Ennusta
-            loput.drop(['Ennusta','Kohorttimuutos'],axis=1, inplace=True)
-
-            loput = pd.concat([ykköset,loput],axis=0)
-
-            if zero_mode != 'fert':
-                nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-                nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
-            else:
-                nolla_df['fert'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-                nolla_df['Ennusta'] = np.maximum(0, nolla_df.Hed * nolla_df.fert)
-
-            n = pd.concat([n,nolla_df], axis = 0)
-
-
-
-            loput['Kohorttimuutos'] = ridge.predict(scl.transform(loput[norm_selittäjät]))
-            loput['Ennusta'] = np.maximum(0,loput.Lähtö + loput.Kohorttimuutos)
-
-            v = pd.concat([v,loput],axis = 0)
-
-        result = pd.concat([n[['Vuosi',
-                               'Ikä',
-
-                               'Ennusta']],v[['Vuosi',
-                                              'Ikä',
-
-                                              'Ennusta']]],axis = 0)
-
-        test_result=result.sort_values(by='Ikä')
-        toteutunut = pd.concat([nollat_[(nollat_.Vuosi<=alkuvuosi)][['Vuosi','Ikä','Ennusta']],väestö_[(väestö_.Vuosi<=alkuvuosi)][['Vuosi','Ikä','Ennusta']]],axis=0)
-        test_toteutunut = toteutunut.sort_values(by='Ikä')
-        
-        simulation_test = test_result.copy().set_index('Vuosi')
-        simulation_true = test_toteutunut.copy().set_index('Vuosi')
-        
-        
-        mae = mean_absolute_error(test_toteutunut[test_toteutunut.Vuosi>=testi_alkuvuosi].Ennusta, 
-                                  test_result[test_result.Vuosi>=testi_alkuvuosi].Ennusta)
-        margin= 1.96*(test_toteutunut[test_toteutunut.Vuosi>=testi_alkuvuosi].Ennusta- test_result[test_result.Vuosi>=testi_alkuvuosi].Ennusta).std()/math.sqrt(len(test_result[test_result.Vuosi>=testi_alkuvuosi]))
-        
-        nmae = round(mae / test_toteutunut[test_toteutunut.Vuosi>=testi_alkuvuosi].Ennusta.std(),2)
-        
-        rmse = math.sqrt(mean_squared_error(test_toteutunut[test_toteutunut.Vuosi>=testi_alkuvuosi].Ennusta, 
-                                           test_result[test_result.Vuosi>=testi_alkuvuosi].Ennusta))
-        
-        nrmse = round(rmse / test_toteutunut[test_toteutunut.Vuosi>=testi_alkuvuosi].Ennusta.std(),2)
-        
-        r2 = round(r2_score(test_toteutunut[test_toteutunut.Vuosi>=testi_alkuvuosi].Ennusta, 
-                       test_result[test_result.Vuosi>=testi_alkuvuosi].Ennusta),2)
+        mae = mean_absolute_error(test_result.Väestö, test_result.Väestöennuste)
+        nmae = round(mae / test_result.Väestö.std(),2)
+        rmse = math.sqrt(mean_squared_error(test_result.Väestö, test_result.Väestöennuste))
+        nrmse = round(rmse / test_result.Väestö.std(),2)
+        r2 = round(r2_score(test_result.Väestö, test_result.Väestöennuste),2)
         
         if nmae <= 0.1:
             nmae_color = 'green'
@@ -1213,15 +1191,10 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
             r2_text='Hyvä'
         
 
-#         chain = 'MAE: '
-#         chain+= str(round(mae,2))
-       # chain+=', Virhemarginaali: '
-       # chain+=str(round(margin,2))
         chain=''
         chain+='NMAE: '
         chain+= str(nmae)
-#         chain+=', RMSE: '
-#         chain+=str(round(rmse,2))
+
         chain+=', NRMSE: '
         chain+= str(nrmse)
         chain+=', R²: '
@@ -1231,107 +1204,46 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         
         # Testi: ennustetaan viimeisimpien vuosien väestö ja vertaillaan Tilastokeskuksen ennusteeseen (ne vuodet, jotka ovat toteutuneissa vuosissa ja Tilastokeskuksen ennusteessa).
         
+        train_data = data_df.loc[data_df.index.isin(np.arange(aloita, tk_forecast.index.min()))]
+        test_data = data_df.loc[data_df.index.isin(np.arange(tk_forecast.index.min(), tk_forecast.index.max()+1))]
+
+
+        nollat, väestö = preprocess(train_data,hed_min, hed_max)
+
+        until=test_data.index.max()
+        
         
         if toteutuneet_ennusteet > 0:
-                       
-                        
-            scl = StandardScaler()
-            scl2 = StandardScaler()
-
-            väestö_ = väestö.copy()
-            nollat_=nollat.copy()
             
-            vika_vuosi = sorted(ennuste_leikkaus)[0]
-
             
-            x = väestö_[väestö_.Vuosi<vika_vuosi][norm_selittäjät]
-            X = scl.fit_transform(x)
-            y= väestö_[väestö_.Vuosi<vika_vuosi]['Kohorttimuutos']
-
-            ridge.fit(X,y)
-
-            x = nollat_[nollat_.Vuosi<vika_vuosi][nolla_selittäjät]
-            X = scl2.fit_transform(x)
-            
-            if zero_mode != 'fert':
-                y = nollat_[nollat_.Vuosi<vika_vuosi]['Muutos']
-            else:
-                y = nollat_[nollat_.Vuosi<vika_vuosi]['fert']
-
-            svr.fit(X,y)
-
-            v = väestö_.copy()
-
-            v_20 = v[(v.Vuosi.isin(ennuste_leikkaus))]
-            
-            v = v[v.Vuosi<vika_vuosi]
-
-            v_20.Kohorttimuutos =  ridge.predict(scl.transform(v_20[norm_selittäjät]))
-            v_20.Ennusta = np.maximum(0,v_20.Lähtö + v_20.Kohorttimuutos)
-            v = pd.concat([v,v_20],axis=0)
-
-
-            n = nollat_.copy()
-
-
-            n_20 = n[(n.Vuosi.isin(ennuste_leikkaus))]
-            n = n[n.Vuosi<vika_vuosi]
-            
-            if zero_mode != 'fert':
-                n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-                n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
-            else:
-                n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-                n_20.ennusta = np.maximum(0,n_20.Hed * n_20.fert)
-           
-            n = pd.concat([n,n_20],axis=0)
-                        
-
-
-            result = pd.concat([n[['Vuosi',
-                                   'Ikä',
-
-                                   'Ennusta']],v[['Vuosi',
-                                                  'Ikä',
-
-                                                  'Ennusta']]],axis = 0)
-
-            quick_test_result=result.sort_values(by='Ikä')
-            toteutunut = pd.concat([nollat[(nollat.Vuosi.isin(ennuste_leikkaus))][['Vuosi','Ikä','Ennusta']],väestö[(väestö.Vuosi.isin(ennuste_leikkaus))][['Vuosi','Ikä','Ennusta']]],axis=0)
-
-    
-            quick_test_toteutunut = toteutunut.sort_values(by='Ikä')
+            testitulos =  predict(nollat, väestö, ridge, svr, hed_min, hed_max, until,city, zero_mode)
+            last_result = pd.merge(left = testitulos.reset_index(), right = tk_forecast[['Ikä','Tilastokeskuksen ennuste']].reset_index(), on = ['Vuosi','Ikä'], how = 'left').set_index('Vuosi')
         
-            qtr = quick_test_result[quick_test_result.Vuosi.isin(ennuste_leikkaus)]
-            qtt = quick_test_toteutunut[quick_test_toteutunut.Vuosi.isin(ennuste_leikkaus)]
-            
-            
-            age_test = qtr[qtr.Vuosi==vika_vuosi]
-            age_true = qtt[qtt.Vuosi==vika_vuosi]
-            
-            
-            quick_mae = mean_absolute_error(qtt.Ennusta, qtr.Ennusta)
-    #         margin= 1.96*(test_toteutunut[test_toteutunut.vuosi>=testi_alkuvuosi].ennusta- test_result[test_result.vuosi>=testi_alkuvuosi].ennusta).std()/math.sqrt(len(test_result[test_result.vuosi>=testi_alkuvuosi]))
+            last_result = pd.merge(left = last_result.reset_index(), right = test_data[['Ikä','Väestö']].reset_index(), on = ['Vuosi','Ikä'], how = 'inner').set_index('Vuosi')
 
-            quick_nmae = round(quick_mae / qtt.Ennusta.std(),2)
-
-            quick_rmse = math.sqrt(mean_squared_error(qtt.Ennusta, 
-                                               qtr.Ennusta))
-
-            quick_nrmse = round(quick_rmse / qtt.Ennusta.std(),2)
-
-            quick_r2 = round(r2_score(qtt.Ennusta, 
-                          qtr.Ennusta),2)
             
-            tot = int(qtt[qtt.Vuosi==sorted(ennuste_leikkaus)[-1]].Ennusta.sum())
-            enn = int(np.ceil(qtr[qtr.Vuosi==sorted(ennuste_leikkaus)[-1]].Ennusta.sum()))
+            
+            quick_mae = mean_absolute_error(last_result.Väestö, last_result.Väestöennuste)
+
+            quick_nmae = round(quick_mae / last_result.Väestö.std(),2)
+
+            quick_rmse = math.sqrt(mean_squared_error(last_result.Väestö, last_result.Väestöennuste))
+
+            quick_nrmse = round(quick_rmse / last_result.Väestö.std(),2)
+
+            quick_r2 = round(r2_score(last_result.Väestö, last_result.Väestöennuste),2)
+            
+
+
+            tot = last_result[last_result.index == last_result.index.max()].Väestö.sum()
+            enn = int(np.ceil(last_result[last_result.index == last_result.index.max()].Väestöennuste.sum()))
             
             tot_väestö = '{:,}'.format(tot).replace(',',' ')
             enn_väestö = '{:,}'.format(enn).replace(',',' ')
             diff = tot - enn
             diff_document = diff
             
-            enn_document = int(np.ceil(qtr[qtr.Vuosi==sorted(ennuste_leikkaus)[-1]].Ennusta.sum()))
+            enn_document = enn
             
             if toteutuneet_ennusteet == 1:
                 printed_value=''
@@ -1339,9 +1251,9 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                 printed_value = str(number_to[toteutuneet_ennusteet])
             
             if diff > 0:
-                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä enemmän.'
+                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä vähemmän.'
             elif diff < 0:
-                diff_word = 'erosi toteutuneesta: '+str(np.absolute(diff))+' henkilöä vähemmän.'
+                diff_word = 'erosi toteutuneesta: '+str(np.absolute(diff))+' henkilöä enemmän.'
             else:
                 diff_word = 'ennusti täsmälleen saman väestön.'
             
@@ -1353,143 +1265,76 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                 quick_chain+= str(quick_nrmse)
                 quick_chain+=', R²: '
                 quick_chain+=str(quick_r2)
-                quick_chain+= '. Toteutunut väestö vuodelle '+str(sorted(ennuste_leikkaus)[-1])+': '+str(tot_väestö)
-                quick_chain+= '. Ennustettu väestö vuodelle '+str(sorted(ennuste_leikkaus)[-1])+': '+str(enn_väestö)
+                quick_chain+= '. Toteutunut väestö vuodelle '+str(last_result.index.max())+': '+str(tot_väestö)
+                quick_chain+= '. Ennustettu väestö vuodelle '+str(last_result.index.max())+': '+str(enn_väestö)
                 quick_chain += ', Ennuste '+diff_word
             except:
                 quick_chain = ''
-                
+            
+            notna_test_result = last_result.dropna()
+        
+        
+      #  try:
+
+            nmae_tk = round(mean_absolute_error(notna_test_result.Väestö,notna_test_result['Tilastokeskuksen ennuste'])/notna_test_result.Väestö.std(),2)
+            nrmse_tk = round(math.sqrt(mean_squared_error(notna_test_result.Väestö,notna_test_result['Tilastokeskuksen ennuste']))/notna_test_result.Väestö.std(),2)
+            r2_tk = round(r2_score(notna_test_result.Väestö,notna_test_result['Tilastokeskuksen ennuste']),2)
+
+            v_tot = int(notna_test_result.loc[notna_test_result.index.max()].Väestö.sum())
+            v_enn = int(notna_test_result.loc[notna_test_result.index.max()]['Tilastokeskuksen ennuste'].sum())
+            diff = v_enn-v_tot
+            v_diff_document = diff
+
+            v_tot_document = v_tot
+            v_enn_document = v_enn
+
+            if diff > 0:
+                diff_word = 'erosi toteutuneesta: '+str(diff)+' henkilöä enemmän.'
+            elif diff < 0:
+                diff_word = 'erosi toteutuneesta: '+str(np.absolute(diff))+' henkilöä vähemmän.'
+            else:
+                diff_word = 'ennusti täsmälleen saman väestön.'
+            
+            
+            
+            tk_chain = 'Tilastokeskuksen ennusteen vastaavat arvot MAE: '+str(nmae_tk)+', RMSE: '+str(nrmse_tk)+', R²: '+str(r2_tk)+'.'
+
+            tk_chain+= ' Tilastokeskuksen ennuste: '+'{:,}'.format(v_enn).replace(',',' ')
+            tk_chain += '. Tilastokeskuksen ennuste '+diff_word
+
 
         # Projektio
-
-
-        scl = StandardScaler()
-        scl2 = StandardScaler()
-
-
-        väestö_ = väestö.copy()
-        nollat_=nollat.copy()
-
-
-
-        x = väestö_[väestö_.Vuosi<alkuvuosi][norm_selittäjät]
-        X = scl.fit_transform(x)
-        y= väestö_[väestö_.Vuosi<alkuvuosi]['Kohorttimuutos']
-
-        ridge.fit(X,y)
-
-        x = nollat_[nollat_.Vuosi<alkuvuosi][nolla_selittäjät]
-        X = scl2.fit_transform(x)
         
-        if zero_mode != 'fert':
-            y = nollat_[nollat_.Vuosi<alkuvuosi]['Muutos']
-        else:
-            y = nollat_[nollat_.Vuosi<alkuvuosi]['fert']
-
-        svr.fit(X,y)
-
-        v = väestö_.copy()
-        v_20 = v[v.Vuosi==alkuvuosi]
-        v = v[v.Vuosi<alkuvuosi]
-
-        v_20.Kohorttimuutos =  ridge.predict(scl.transform(v_20[norm_selittäjät]))
-        v_20.Ennusta = np.maximum(0,v_20.Lähtö + v_20.Kohorttimuutos)
-        v = pd.concat([v,v_20],axis=0)
-
-        n = nollat_.copy()
-
-        n_20 = n[n.Vuosi==alkuvuosi]
-        n = n[n.Vuosi<alkuvuosi]
         
-        if zero_mode != 'fert':
-            n_20.Muutos =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-            n_20.ennusta = np.maximum(0,n_20.Lähtö + n_20.Muutos)
-        else:
-            n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-            n_20.ennusta = np.maximum(0,n_20.Hed + n_20.fert)
-        n = pd.concat([n,n_20],axis=0)
+        nollat, väestö = preprocess(data_df[data_df.index >= aloita], hed_min, hed_max)
+        
+        
+        until = data_df.index.max() + ennusteen_pituus
+        
+        result = predict(nollat, väestö, ridge, svr, hed_min, hed_max, until,city, zero_mode)
+        
+        result = pd.concat([data_df.rename(columns = {'Väestö':'Väestöennuste'}),result])
 
-        if ennusteen_pituus > 1:
-            for year in tqdm(range(alkuvuosi+1, alkuvuosi + 1 + ennusteen_pituus)):#last_year+1)):
-
-                hed_df = v[(v.Vuosi == year -1) & (v.Ikä.isin(np.arange(hed_min,hed_max+1)))].groupby('Vuosi').agg({'Ennusta':'sum'}).rename(columns={'Ennusta':'Hed'}).reset_index().copy()
-
-
-                nolla_df = n[(n.Vuosi==year-1)].copy()
-
-                ykköset = nolla_df.copy()
-
-                ykköset.Lähtö = ykköset.Ennusta
-                ykköset.Vuosi+=1
-                ykköset.Ikä+=1
-                ykköset = ykköset[['Vuosi',
-
-                                   'Ikä','Lähtö']]
-
-
-                nolla_df.Lähtö = nolla_df.Ennusta
-                nolla_df.Vuosi+=1
-
-
-                nolla_df['Hed']=hed_df['Hed'].values
-
-
-                loput = v[(v.Vuosi==year-1)&(v.Ikä<100)]
-                loput.Ikä+=1
-                loput.Vuosi+=1
-                loput.Lähtö=loput.Ennusta
-                loput.drop(['Ennusta','Kohorttimuutos'],axis=1, inplace=True)
-
-                loput = pd.concat([ykköset,loput],axis=0)
-
-
-
-
-                if zero_mode != 'fert':
-                    nolla_df['Muutos'] = svr.predict(scl2.transform(nolla_df[nolla_selittäjät]))
-                    nolla_df['Ennusta'] = np.maximum(0, nolla_df.Lähtö + nolla_df.Muutos)
-                else:
-                    n_20.fert =  svr.predict(scl2.transform(n_20[nolla_selittäjät]))
-                    n_20.ennusta = np.maximum(0,n_20.Hed + n_20.fert)
-
-                n = pd.concat([n,nolla_df], axis = 0)
-
-
-
-                loput['Kohorttimuutos'] = ridge.predict(scl.transform(loput[norm_selittäjät]))
-                loput['Ennusta'] = np.maximum(0,loput.Lähtö + loput.Kohorttimuutos)
-
-                v = pd.concat([v,loput],axis = 0)
-
-
-        result = pd.concat([n[['Vuosi',
-                               'Ikä',
-                               
-                               'Ennusta']],v[['Vuosi',
-                                              'Ikä',                                              
-                                              'Ennusta']]],axis = 0)
-        result = result.sort_values(by='Ikä')
-
-        toteutunut = pd.concat([nollat_[(nollat_.Vuosi<alkuvuosi)][['Vuosi','Ikä','Ennusta']],väestö_[(väestö_.Vuosi<alkuvuosi)][['Vuosi','Ikä','Ennusta']]],axis=0)
-        toteutunut = toteutunut.sort_values(by='Ikä')
         
         # Dokumentoi
+        
 
-        res_group = result.groupby('Vuosi').agg({'Ennusta':'sum'})
-        res_group.Ennusta=np.ceil(res_group.Ennusta).astype(int)
+
+        res_group = result.reset_index().groupby('Vuosi').agg({'Väestöennuste':'sum'})
+        res_group.Väestöennuste=np.ceil(res_group.Väestöennuste).astype(int)
         
         result['Kaupunki'] = city
         
         
-        df = result.sort_values(by=['Vuosi','Ikä'])
+        df = result.reset_index().sort_values(by=['Vuosi','Ikä'])
         
-        df['Ennuste/Toteutunut'] = df.apply(lambda x: apply_uncertainty(x['Vuosi'],alkuvuosi),axis=1)
+        df['Ennuste/Toteutunut'] = df.apply(lambda x: apply_uncertainty(x['Vuosi'],data_df.index.max()+1),axis=1)
         
         df.columns = [c.capitalize() for c in df.columns]
         df = df.set_index('Vuosi')
         
-        df = df[['Kaupunki','Ikä', 'Ennuste/toteutunut','Ennusta']]
-        df = df.rename(columns={'Ennusta':'Väestö','Ennuste/toteutunut':'Ennuste/Toteutunut'})
+        df = df[['Kaupunki','Ikä', 'Ennuste/toteutunut','Väestöennuste']]
+        df = df.rename(columns={'Väestöennuste':'Väestö','Ennuste/toteutunut':'Ennuste/Toteutunut'})
         
         meta_data = pd.DataFrame([{'Kaupunki':city,
                                    'Opetuksen aloitusvuosi':aloita,
@@ -1507,11 +1352,11 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                                    'Testin RMSE': quick_nrmse,
                                    'Testin R²':quick_r2,
                                    'Testatut vuodet':toteutuneet_ennusteet,
-                                   'Viimeisin testivuosi': sorted(ennuste_leikkaus)[-1],
+                                   'Viimeisin testivuosi': last_result.index.max(),
                                    'Tilastokeskuksen MAE': nmae_tk,
                                    'Tilastokeskuksen RMSE': nrmse_tk,
                                    'Tilastokeskuksen R²':r2_tk,
-                                   'Koko väestön toteuma vuodelle '+str(sorted(ennuste_leikkaus)[-1]): v_tot_document,
+                                   'Koko väestön toteuma vuodelle '+str(last_result.index.max()): v_tot_document,
                                    'Ennuste': enn_document,
                                    'Tilastokeskuksen ennuste': v_enn_document,
                                    'Ennusteen ero toteumaan': diff_document,
@@ -1522,9 +1367,10 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         writer = pd.ExcelWriter(xlsx_io, engine='xlsxwriter')
         df.to_excel(writer, sheet_name= 'Väestöennuste_'+city)#city+'_'+datetime.now().strftime('%d_%m_%Y'))
         tk_forecast.to_excel(writer, sheet_name = 'TK väestöennuste_'+city)
-        simulation_test['Kaupunki'] = city
-        simulation_test = simulation_test[['Kaupunki','Ikä','Ennusta']]
-        simulation_test.reset_index().sort_values(by=['Vuosi','Ikä']).rename(columns={'vuosi':'Vuosi','ikä':'Ikä','Ennusta':'Väestöennuste'}).set_index('Vuosi').loc[testi_alkuvuosi:].to_excel(writer, sheet_name = 'Simulaatiodata')
+
+        #simulation_test = test_result[['Kaupunki','Ikä','Väestöennuste','Väestö','Tilastokeskuksen ennuste']]
+        test_result.to_excel(writer, sheet_name = 'Simulaatidata')
+        last_result.to_excel(writer, sheet_name = 'Testidata')
         meta_data.to_excel(writer, sheet_name = 'Ennusteen metadata')
         writer.save()
         xlsx_io.seek(0)
@@ -1537,10 +1383,11 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         
         tk_plot = tk_forecast.reset_index().groupby('Vuosi').agg({'Tilastokeskuksen ennuste':'sum'}).sort_index()
         
+        
         if ennusteen_pituus > 1:
             
             tk_plot = tk_plot.loc[:alkuvuosi+ennusteen_pituus]
-            title = city.strip().capitalize()+': väestöennuste '+str(alkuvuosi+1)+' - '+str(result.Vuosi.max())
+            title = city.strip().capitalize()+': väestöennuste '+str(alkuvuosi+1)+' - '+str(result.index.max())
         else:
             
             tk_plot = tk_plot.loc[:alkuvuosi+ennusteen_pituus-1]
@@ -1551,17 +1398,24 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         
         tk_min = tk_plot.index.min()
         tk_max = tk_plot.index.max()
+
         
-        #tk_latest_age = tk_forecast.loc[vika_vuosi,:]
+        res_group = res_group.reset_index()
         
-        tot_plot = res_group.loc[res_group.index <=alkuvuosi]
-        enn_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+1,alkuvuosi+11))]
-        uncertain_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+11,alkuvuosi+21))]
-        very_uncertain_plot = res_group.loc[res_group.index.isin(range(alkuvuosi+21,res_group.index.max()+1))]
+        res_group['Ennuste/Toteutunut'] = res_group.apply(lambda row: apply_uncertainty(row['Vuosi'],data_df.index.max()+1), axis=1)
+        res_group = res_group.set_index('Vuosi')
+       
+
+        tot_plot = res_group[res_group['Ennuste/Toteutunut']=='Toteutunut']
+        enn_plot = res_group[res_group['Ennuste/Toteutunut']=='Ennuste']
+        uncertain_plot = res_group[res_group['Ennuste/Toteutunut']=='Epävarma ennuste']
+        very_uncertain_plot = res_group[res_group['Ennuste/Toteutunut']=='Erittäin epävarma ennuste']
         
-        test_plot = test_result.groupby('Vuosi').Ennusta.sum()
-        test_tot_plot = test_toteutunut.groupby('Vuosi').Ennusta.sum()
-        tk_test_plot = tk_plot.loc[tk_min:test_toteutunut.Vuosi.max()]
+        
+        
+        test_plot = test_result.reset_index().groupby('Vuosi').Väestöennuste.sum()
+        test_tot_plot = data_df[data_df.index>=aloita].reset_index().groupby('Vuosi').Väestö.sum()
+        tk_test_plot = notna_test_result.reset_index().groupby('Vuosi')['Tilastokeskuksen ennuste'].sum()
 
             
 
@@ -1585,7 +1439,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
                                          line = dict(color='green')
                                         ),
                             go.Scatter(x = tk_test_plot.index,
-                                       y = tk_test_plot['Tilastokeskuksen ennuste'],
+                                       y = tk_test_plot.values,
                                        name = 'Tilastokeskuksen ennuste',
                                        line = dict(color = 'blue')
                                       )
@@ -1600,7 +1454,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
                                                        xanchor='left', 
                                                        yanchor='bottom',
-                                                       text=city.strip().capitalize()+': väestöennustesimulaatio '+str(testi_alkuvuosi)+' - '+str(test_result.Vuosi.max()),
+                                                       text=city.strip().capitalize()+': väestöennustesimulaatio '+str(testi_alkuvuosi)+' - '+str(test_result.index.max()),
                                                        font=dict(family='Arial',
                                                                  size=30,
                                                                  color='black'
@@ -1661,79 +1515,38 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         html.Br(),
         html.P(quick_chain, style = dict(textAlign='center', color = 'purple', fontWeight='bold', fontFamily='Arial',fontSize=16)),
         html.P(tk_chain, style = dict(textAlign='center', color = 'blue', fontWeight='bold', fontFamily='Arial',fontSize=16)),
-        #html.P('Alla koneoppimismallin ja Tilastokeskuksen ennusteen vertailua iän mukaan vuodelle '+str(vika_vuosi)+'.', style = dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=16)),
+
         html.Br(),
-#         dcc.Graph(figure = go.Figure(
-#                             data =[
-#                                 go.Scatter(
-#                                    x = age_test.ikä,
-#                                    y = np.ceil(age_test.ennusta),
-#                                    name = 'Ennuste',
-#                                     mode='markers',
-#                                    line = dict(color = 'red')
-#                                 ),
-#                                 go.Scatter(
-#                                    x = age_true.ikä,
-#                                    y = age_true.ennusta,
-#                                     mode='markers',
-#                                    name = 'Toteutunut',
-#                                    line = dict(color = 'green')
-#                                 ),
-#                                 go.Scatter(
-#                                    x = tk_latest_age.Ikä,
-#                                    y = tk_latest_age['Tilastokeskuksen ennuste'],
-#                                    name = 'Tilastokeskuksen ennuste',
-#                                     mode='markers',
-#                                    line = dict(color = 'blue')
-#                                 )
-#                             ],
-#                     layout= go.Layout(
-#                                     xaxis = dict(title = 'Ikä'),
-#                                     yaxis= dict(title = 'Väestö',
-#                                                 tickformat = ' '
-#                                                ),
-#                                     title = dict(xref='paper', 
-#                                                  yref='paper', 
-#                                                  xanchor='left', 
-#                                                  yanchor='bottom',
-#                                                  text=city.strip().capitalize()+': väestöennustetesti iän mukaan vuodelle '+str(vika_vuosi),
-#                                                  font=dict(family='Arial',
-#                                                                  size=30,
-#                                                                  color='black'
-#                                                                 )
-#                                  )
-#                  )
-#         )
-#                  ),
+
         dcc.Graph(figure = go.Figure(
             data=[
 
                             go.Scatter(x = tot_plot.index,
-                                       y = tot_plot.Ennusta,
+                                       y = tot_plot.Väestöennuste,
                                        name = 'Toteutunut',
                                        line = dict(color='green')
                                       ),
                             go.Scatter(x = enn_plot.index,
-                                       y = enn_plot.Ennusta,
+                                       y = enn_plot.Väestöennuste,
                                        name = 'Ennuste',
                                        line = dict(color='orange')
 
                                         ),
                             go.Scatter(x = uncertain_plot.index,
-                                       y = uncertain_plot.Ennusta,
+                                       y = uncertain_plot.Väestöennuste,
                                        name = 'Epävarma ennuste',
                                        line = dict(color='purple')
 
                                         ),
                             go.Scatter(x = very_uncertain_plot.index,
-                                       y = very_uncertain_plot.Ennusta,
+                                       y = very_uncertain_plot.Väestöennuste,
                                        name = 'Erittäin epävarma ennuste',
                                        line = dict(color='red')
 
                                         ),
-                            go.Scatter(x = tk_plot.loc[first_new_tk_forecast_year:].index, 
-                                       y = tk_plot.loc[first_new_tk_forecast_year:]['Tilastokeskuksen ennuste'],
-                                      name = 'Tilastokeskuksen ennuste '+str(first_new_tk_forecast_year)+' - '+str(tk_max),
+                            go.Scatter(x = tk_plot.loc[data_df.index.max()+1:].index, 
+                                       y = tk_plot.loc[data_df.index.max()+1:]['Tilastokeskuksen ennuste'],
+                                      name = 'Tilastokeskuksen ennuste '+str(data_df.index.max()+1)+' - '+str(new_tk_forecast.index.max()),
                                       line = dict(color = 'blue')
                                       )
                              ],
@@ -1762,23 +1575,6 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
              ),
             
 
-
-           
-           
-#            html.H2(city+':', style= dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=30)),
-#            html.Div(id = 'year_selection_indicator',
-#                      style= dict(textAlign='center', color = 'black', fontWeight='bold', fontFamily='Arial',fontSize=30)
-#                     ),
-#             html.Div(id='ikägraafi'),
-            
-
-#           html.H2('Valitse ennustevuosi, jota tarkastella iän mukaan.'),
-#           dcc.Dropdown(id ='vuosivalitsin',
-#                      multi=False,
-#                      options = [{'label':s, 'value': s} for s in range(alkuvuosi,alkuvuosi+ennusteen_pituus+1)],
-#                      value=alkuvuosi
-#                      ),
-
             html.Br(),
                     html.A(
                         'Lataa yksityiskohtainen Excel-taulukko. ',
@@ -1791,95 +1587,6 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
             html.Br()
         ])
 
-
-
-
-    
-# @app.callback(
-#     Output('ikägraafi','children'),
-    
-#     [
-
-#    Input('vuosivalitsin', 'value')
-#    #Input('kunnat','value')
-#     ]
-# )
-# def update_age_graph(year):
-    
-    
-    
-
-    
-#     try:
-            
-#         tk_plot = tk_result.loc[year,:]
-#         ennuste_plot = prediction_result.loc[year,:]
-#         return dcc.Graph(figure = go.Figure(data=[
-#                                     go.Scatter(x = ennuste_plot.Ikä,
-#                                               y = np.ceil(ennuste_plot.Väestö),
-#                                               name = 'Ennuste',
-#                                                mode = 'markers',
-#                                               line = dict(color='red')),
-#                                     go.Scatter(x = tk_plot.Ikä,
-#                                               y = tk_plot['Tilastokeskuksen ennuste'],
-#                                               name = 'Tilastokeskuksen ennuste',
-#                                                mode = 'markers',
-#                                               line = dict(color='blue'))],
-#                                     layout = go.Layout(showlegend=True, xaxis = dict(title = 'Ikä'),
-#                                               yaxis= dict(title = 'Väestö', 
-#                                                                       tickformat = ' '),
-#                                               title = dict(xref='paper', 
-#                                                            yref='paper', 
-
-#                                                            xanchor='left', 
-#                                                            yanchor='bottom',
-#                                                            text=' 0 - 100 -vuotiaat',
-#                                                            font=dict(family='Arial',
-#                                                                      size=30,
-#                                                                      color='black'
-#                                                                     )
-
-
-
-#                                                           )
-
-#                                               )
-#                            )
-#                                            )
-#     except:
-#         ennuste_plot = prediction_result.loc[year,:]
-           
-#         return dcc.Graph(figure = go.Figure(data=[
-#                                     go.Scatter(x = ennuste_plot.Ikä,
-#                                               y = np.ceil(ennuste_plot.Väestö),
-#                                               name = 'Ennuste',
-#                                               mode = 'markers',
-#                                               line = dict(color='red'))
-
-#                                             ],
-#                                     layout = go.Layout(showlegend=True,
-#                                                        xaxis = dict(title = 'Ikä'),
-
-#                                               yaxis= dict(title = 'Väestö', 
-#                                                                       tickformat = ' '),
-#                                               title = dict(xref='paper', 
-#                                                            yref='paper', 
-
-#                                                            xanchor='left', 
-#                                                            yanchor='bottom',
-#                                                            text=' 0 - 100 -vuotiaat',
-#                                                            font=dict(family='Arial',
-#                                                                      size=30,
-#                                                                      color='black'
-#                                                                     )
-
-
-
-#                                                           )
-
-#                                               )
-#                            )
-#                                            )
 
     
                     
