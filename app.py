@@ -36,12 +36,17 @@ spinner_type='graph'
 number_genetive = {1:'yhden',2:'kahden',3:'kolmen'}
 number_to = {1:'yhdelle',2:'kahdelle',3:'kolmelle'}
 
-url = 'https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin/vrm/vaerak/statfin_vaerak_pxt_11re.px'
+url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaerak/statfin_vaerak_pxt_11re.px'
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36','Content-Type':'application/json'}
 
 variables = pd.DataFrame(requests.get(url).json()['variables']).set_index('code')
 
+
+
+
+
 vuodet = [int(c) for c in variables.loc['Vuosi'].valueTexts]
+
 
 
 areas = requests.get(url).json()['variables'][0]
@@ -54,11 +59,11 @@ cities = cities.set_index('alue')
 vuosi_options = [{'label':s, 'value': s} for s in sorted(list(vuodet))]
 city_options = [{'label':s, 'value': s} for s in sorted(list(cities.index))]
 
-vanha_ennuste_url = 'https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin_Passiivi/vrm/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
+vanha_ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vrm/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
 vanha_tk_ennustevuodet = [int(c) for c  in requests.get(vanha_ennuste_url).json()['variables'][1]['valueTexts']]
 
 
-ennuste_url = "https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin/vrm/vaenn/statfin_vaenn_pxt_139f.px"
+ennuste_url = "https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaenn/statfin_vaenn_pxt_139f.px"
 tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables'][1]['valueTexts']]
 
 
@@ -259,10 +264,10 @@ def serve_layout():
                     dcc.Loading(id='spinner',fullscreen=False, type=spinner_type, children=[html.Div(id='ennuste')]),
 
                     html.Label(['Datan lähde: ', 
-                                html.A('StatFin', href = "https://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaerak/statfin_vaerak_pxt_11re.px/")
+                                html.A('StatFin', href = "https://statfin.stat.fi/PxWeb/pxweb/fi/StatFin/StatFin__vaerak/statfin_vaerak_pxt_11re.px")
                                ]),
                     html.Label(['Tilastokeskuksen väestöennuste: ',
-                               html.A('StatFin', href = "https://pxnet2.stat.fi/PXWeb/pxweb/fi/StatFin/StatFin__vrm__vaenn/statfin_vaenn_pxt_128v.px/")
+                               html.A('StatFin', href = "https://statfin.stat.fi/PxWeb/pxweb/fi/StatFin/StatFin__vaenn/statfin_vaenn_pxt_139f.px/")
                                ]),
                     html.Label(['Satunnaismetsä Wikipediassa: ', 
                                 html.A('Wikipedia', href='https://en.wikipedia.org/wiki/Random_forest')
@@ -366,147 +371,143 @@ def apply_uncertainty(year, first_predicted):
 
 def get_new_tk_forecast(city_code):
     
-    ennuste_url = 'https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin/vrm/vaenn/statfin_vaenn_pxt_139f.px'
+    ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaenn/statfin_vaenn_pxt_139f.px'
     
     headers =  {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
                                 'Content-Type':'application/json'
                                }
     
     ennuste_query = {
-                          "query": [
-                            {
-                              "code": "Alue",
-                              "selection": {
-                                "filter": "item",
-                                "values": [
-                                    city_code
-                                ]
-                              }
-                            },
-                            {
-                              "code": "Ikä",
-                              "selection": {
-                                "filter": "item",
-                                "values": [
-                                  "000",
-                                  "001",
-                                  "002",
-                                  "003",
-                                  "004",
-                                  "005",
-                                  "006",
-                                  "007",
-                                  "008",
-                                  "009",
-                                  "010",
-                                  "011",
-                                  "012",
-                                  "013",
-                                  "014",
-                                  "015",
-                                  "016",
-                                  "017",
-                                  "018",
-                                  "019",
-                                  "020",
-                                  "021",
-                                  "022",
-                                  "023",
-                                  "024",
-                                  "025",
-                                  "026",
-                                  "027",
-                                  "028",
-                                  "029",
-                                  "030",
-                                  "031",
-                                  "032",
-                                  "033",
-                                  "034",
-                                  "035",
-                                  "036",
-                                  "037",
-                                  "038",
-                                  "039",
-                                  "040",
-                                  "041",
-                                  "042",
-                                  "043",
-                                  "044",
-                                  "045",
-                                  "046",
-                                  "047",
-                                  "048",
-                                  "049",
-                                  "050",
-                                  "051",
-                                  "052",
-                                  "053",
-                                  "054",
-                                  "055",
-                                  "056",
-                                  "057",
-                                  "058",
-                                  "059",
-                                  "060",
-                                  "061",
-                                  "062",
-                                  "063",
-                                  "064",
-                                  "065",
-                                  "066",
-                                  "067",
-                                  "068",
-                                  "069",
-                                  "070",
-                                  "071",
-                                  "072",
-                                  "073",
-                                  "074",
-                                  "075",
-                                  "076",
-                                  "077",
-                                  "078",
-                                  "079",
-                                  "080",
-                                  "081",
-                                  "082",
-                                  "083",
-                                  "084",
-                                  "085",
-                                  "086",
-                                  "087",
-                                  "088",
-                                  "089",
-                                  "090",
-                                  "091",
-                                  "092",
-                                  "093",
-                                  "094",
-                                  "095",
-                                  "096",
-                                  "097",
-                                  "098",
-                                  "099",
-                                  "100-"
-                                ]
-                              }
-                            }
-                          ],
-                          "response": {
-                            "format": "json-stat2"
-                          }
-                        }
+  "query": [
+    {
+      "code": "Alue",
+      "selection": {
+        "filter": "item",
+        "values": [
+          city_code
+        ]
+      }
+    },
+    {
+      "code": "Ikä",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "000",
+          "001",
+          "002",
+          "003",
+          "004",
+          "005",
+          "006",
+          "007",
+          "008",
+          "009",
+          "010",
+          "011",
+          "012",
+          "013",
+          "014",
+          "015",
+          "016",
+          "017",
+          "018",
+          "019",
+          "020",
+          "021",
+          "022",
+          "023",
+          "024",
+          "025",
+          "026",
+          "027",
+          "028",
+          "029",
+          "030",
+          "031",
+          "032",
+          "033",
+          "034",
+          "035",
+          "036",
+          "037",
+          "038",
+          "039",
+          "040",
+          "041",
+          "042",
+          "043",
+          "044",
+          "045",
+          "046",
+          "047",
+          "048",
+          "049",
+          "050",
+          "051",
+          "052",
+          "053",
+          "054",
+          "055",
+          "056",
+          "057",
+          "058",
+          "059",
+          "060",
+          "061",
+          "062",
+          "063",
+          "064",
+          "065",
+          "066",
+          "067",
+          "068",
+          "069",
+          "070",
+          "071",
+          "072",
+          "073",
+          "074",
+          "075",
+          "076",
+          "077",
+          "078",
+          "079",
+          "080",
+          "081",
+          "082",
+          "083",
+          "084",
+          "085",
+          "086",
+          "087",
+          "088",
+          "089",
+          "090",
+          "091",
+          "092",
+          "093",
+          "094",
+          "095",
+          "096",
+          "097",
+          "098",
+          "099",
+          "100-"
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json-stat2"
+  }
+}
     
-    blocked = True
-    while blocked:
-        try:
-            ennuste_json = requests.post(ennuste_url,data=json.dumps(ennuste_query),headers=headers)
-            tk_data = ennuste_json.json()
-            blocked=False
-        except:
-                
-            time.sleep(2)
+ 
+    
+    ennuste_json = requests.post(ennuste_url,json=ennuste_query,headers=headers)
+    tk_data = ennuste_json.json()
+    
     
     
     tk_year_df = pd.DataFrame()
@@ -525,7 +526,7 @@ def get_new_tk_forecast(city_code):
 
 def get_old_tk_forecast(city_code):
     
-    ennuste_url = 'https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin_Passiivi/vrm/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
+    ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vrm/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
     
     headers =  {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
                                 'Content-Type':'application/json'
@@ -658,16 +659,10 @@ def get_old_tk_forecast(city_code):
                           }
                         }
     
-    blocked = True
-    while blocked:
-        try:
-            ennuste_json = requests.post(ennuste_url,data=json.dumps(ennuste_query),headers=headers)
-            tk_data = ennuste_json.json()
-            blocked = False
-        except:
-                
-            time.sleep(2)
-        
+
+    
+    ennuste_json = requests.post(ennuste_url,json=ennuste_query,headers=headers)
+    tk_data = ennuste_json.json()
     
     tk_year_df = pd.DataFrame()
     tk_age_df = pd.DataFrame()
@@ -685,7 +680,7 @@ def get_old_tk_forecast(city_code):
 
 def get_data(city_code):
     
-    url = 'https://pxnet2.stat.fi:443/PXWeb/api/v1/fi/StatFin/vrm/vaerak/statfin_vaerak_pxt_11re.px'
+    url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaerak/statfin_vaerak_pxt_11re.px'
     headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
                                 'Content-Type':'application/json'
                                }
@@ -814,15 +809,11 @@ def get_data(city_code):
             "format": "json-stat"
           }
         }
-    blocked = True
-    while blocked:
-        try:
-            data_json = requests.post(url,data=json.dumps(payload),headers=headers)
-            data = data_json.json()
-            blocked=False
-        except:
-                
-            time.sleep(2)
+
+    
+    data_json = requests.post(url,json=payload,headers=headers)
+    data = data_json.json()
+    
     
     age_df = pd.DataFrame()
     age_df['Ikä'] = list(data['dataset']['dimension']['Ikä']['category']['index'].values())
@@ -835,6 +826,7 @@ def get_data(city_code):
     data_df['Kaupunki'] = list(data['dataset']['dimension']['Alue']['category']['label'].values())[0].capitalize()
     data_df = data_df.set_index('Vuosi')
     
+   
     
     return data_df
 
@@ -1110,7 +1102,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
         
         svr = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=None,
                       max_features='auto', max_leaf_nodes=None,
-                      min_impurity_decrease=0.0, min_impurity_split=None,
+                      min_impurity_decrease=0.0,
                       min_samples_leaf=2, min_samples_split=2,
                       min_weight_fraction_leaf=0.0, n_estimators=puut,
                       n_jobs=-1, oob_score=True, random_state=9876, verbose=0,
@@ -1119,7 +1111,7 @@ def test_predict_document(n_clicks,ennusteen_pituus, puut, aloita, testikoko, he
 
         ridge = RandomForestRegressor(bootstrap=True, criterion='mse', max_depth=None,
                       max_features='auto', max_leaf_nodes=None,
-                      min_impurity_decrease=0.0, min_impurity_split=None,
+                      min_impurity_decrease=0.0, 
                       min_samples_leaf=2, min_samples_split=2,
                       min_weight_fraction_leaf=0.0, n_estimators=puut,
                       n_jobs=-1, oob_score=True, random_state=9876, verbose=0,
