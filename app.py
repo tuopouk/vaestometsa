@@ -9,16 +9,10 @@ import plotly.graph_objs as go
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error,r2_score
-from sklearn.svm import SVR
-import json
 from datetime import datetime
-from tqdm import tqdm
 import warnings
 warnings.filterwarnings('ignore')
 import math
-import time
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_squared_error, mean_absolute_error,  explained_variance_score, mean_squared_log_error,median_absolute_error,r2_score
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -59,7 +53,7 @@ cities = cities.set_index('alue')
 vuosi_options = [{'label':s, 'value': s} for s in sorted(list(vuodet))]
 city_options = [{'label':s, 'value': s} for s in sorted(list(cities.index))]
 
-vanha_ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vrm/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
+vanha_ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
 vanha_tk_ennustevuodet = [int(c) for c  in requests.get(vanha_ennuste_url).json()['variables'][1]['valueTexts']]
 
 
@@ -526,7 +520,7 @@ def get_new_tk_forecast(city_code):
 
 def get_old_tk_forecast(city_code):
     
-    ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vrm/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
+    # ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vrm/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
     
     headers =  {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
                                 'Content-Type':'application/json'
@@ -661,7 +655,7 @@ def get_old_tk_forecast(city_code):
     
 
     
-    ennuste_json = requests.post(ennuste_url,json=ennuste_query,headers=headers)
+    ennuste_json = requests.post(vanha_ennuste_url,json=ennuste_query,headers=headers)
     tk_data = ennuste_json.json()
     
     tk_year_df = pd.DataFrame()
