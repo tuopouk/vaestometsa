@@ -28,7 +28,7 @@ spinner_type='graph'
 
 
 number_genetive = {1:'yhden',2:'kahden',3:'kolmen'}
-number_to = {1:'yhdelle',2:'kahdelle',3:'kolmelle'}
+number_to = {1:'yhdelle',2:'kahdelle',3:'kolmelle', 4: 'neljälle'}
 
 url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaerak/statfin_vaerak_pxt_11re.px'
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36','Content-Type':'application/json'}
