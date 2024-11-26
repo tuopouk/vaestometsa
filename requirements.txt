@@ -29,7 +29,7 @@ scikit-learn==1.1.1
 scipy==1.7.3
 six==1.14.0
 urllib3==1.25.9
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 zope.interface==5.1.0
 dash-daq==0.1.7
 tqdm==4.45.0
