@@ -28,7 +28,7 @@ spinner_type='graph'
 
 
 number_genetive = {1:'yhden',2:'kahden',3:'kolmen'}
-number_to = {1:'yhdelle',2:'kahdelle',3:'kolmelle', 4: 'neljälle'}
+number_to = {1:'yhdelle',2:'kahdelle',3:'kolmelle', 4: 'neljälle', 5:'viidelle'}
 
 url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaerak/statfin_vaerak_pxt_11re.px'
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36','Content-Type':'application/json'}
@@ -53,12 +53,21 @@ cities = cities.set_index('alue')
 vuosi_options = [{'label':s, 'value': s} for s in sorted(list(vuodet))]
 city_options = [{'label':s, 'value': s} for s in sorted(list(cities.index))]
 
-vanha_ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
+# vanha_ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vaenn/statfinpas_vaenn_pxt_128v_2040.px'
+# vanha_tk_ennustevuodet = [int(c) for c  in requests.get(vanha_ennuste_url).json()['variables'][1]['valueTexts']]
+
+
+# ennuste_url = "https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaenn/statfin_vaenn_pxt_139f.px"
+# tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables'][1]['valueTexts']]
+
+vanha_ennuste_url = "https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin_Passiivi/vaenn/statfinpas_vaenn_pxt_139f_2040.px"
 vanha_tk_ennustevuodet = [int(c) for c  in requests.get(vanha_ennuste_url).json()['variables'][1]['valueTexts']]
 
-
-ennuste_url = "https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaenn/statfin_vaenn_pxt_139f.px"
+ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaenn/statfin_vaenn_pxt_14wx.px'
 tk_ennustevuodet = [int(c) for c  in requests.get(ennuste_url).json()['variables'][1]['valueTexts']]
+
+
+
 
 
 norm_selittäjät = ['Ikä',
@@ -261,7 +270,7 @@ def serve_layout():
                                 html.A('StatFin', href = "https://statfin.stat.fi/PxWeb/pxweb/fi/StatFin/StatFin__vaerak/statfin_vaerak_pxt_11re.px")
                                ]),
                     html.Label(['Tilastokeskuksen väestöennuste: ',
-                               html.A('StatFin', href = "https://statfin.stat.fi/PxWeb/pxweb/fi/StatFin/StatFin__vaenn/statfin_vaenn_pxt_139f.px/")
+                               html.A('StatFin', href = "https://statfin.stat.fi/PxWeb/pxweb/fi/StatFin/StatFin__vaenn/statfin_vaenn_pxt_14wx.px/")
                                ]),
                     html.Label(['Satunnaismetsä Wikipediassa: ', 
                                 html.A('Wikipedia', href='https://en.wikipedia.org/wiki/Random_forest')
@@ -365,7 +374,7 @@ def apply_uncertainty(year, first_predicted):
 
 def get_new_tk_forecast(city_code):
     
-    ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaenn/statfin_vaenn_pxt_139f.px'
+    # ennuste_url = 'https://statfin.stat.fi:443/PxWeb/api/v1/fi/StatFin/vaenn/statfin_vaenn_pxt_139f.px'
     
     headers =  {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
                                 'Content-Type':'application/json'
